@@ -10,6 +10,7 @@ const GROUPS = [
   { id: 'astra', name: 'Astra' },
   { id: 'chatgpt', name: 'ChatGPT' },
   { id: 'deepseek', name: 'DeepSeek' },
+  { id: 'opus', name: 'Opus' },
 ];
 const emptyStats = () => ({ played: 0, wins: 0, losses: 0, draws: 0, streak: 0, best: 0, opponents: {} });
 let settings = {}, stats = emptyStats(), storageAvailable = true;
