@@ -8,7 +8,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 候选 core-1：恢复完整 Opus 机动价值，已选机动与射后安全一致，同 Tick 拾取武器顺序。
+ * Gen4 候选 core-2：完整 Opus 机动价值、实际动作自弹安全、同 Tick 拾取，保命弹提前迎击近身追击。
  *
  * MIT License
  * 
@@ -97,7 +97,7 @@ const TUNE = {
   duelTime: 1.1553,            // 转向加飞行不超过此秒数才算对决。
   duelThreatScale: 0.0934,    // 对决时炮口线与瞬杀圈的代价折扣；真实来弹不打折。
   duelAimWeight: 68.9858,
-  lastShotRange: 70.1767,        // 最后一发只在此距离内用：飞行不足 8 Tick，对手来不及躲。
+  lastShotRange: 110,        // 保命弹的迎击窗口；仍须通过命中率和自弹安全判断，避免等到双方同时近身射击。
   reserveBullets: 1,
   escapeAt: 12,             // 沿候选走到这一步再分支检查退路（步）。
   escapeCost: 148.0767,          // 退路被来弹封死的代价。

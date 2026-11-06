@@ -1160,20 +1160,33 @@ function planEvade(plan, me) {
 }
 
 // 激光不是慢速弹：在公开冷却结束前争取墙后位置，保持目标格而非反复追逐瞬时炮口线。
+function laserExposed(ex, ey, x, y) {
+  const dx = x - ex, dy = y - ey, gap = Math.hypot(dx, dy);
+  if (gap < tankR) return true;
+  const nx = -dy / gap * (tankR + 3), ny = dx / gap * (tankR + 3);
+  return clearSegment(ex, ey, x, y, 0) ||
+    clearSegment(ex, ey, x + nx, y + ny, 0) ||
+    clearSegment(ex, ey, x - nx, y - ny, 0);
+}
+
 function planLaserCover(state, plan) {
   const me = state.self;
+  // Include carriers currently behind walls too: the escape destination must
+  // not leave the shelter of a second firing direction.
   const lasers = state.enemies.filter(enemy => enemy.alive && enemy.laserShots > 0 &&
-    enemy.cooldown < 1.2 && Math.hypot(enemy.x - me.x, enemy.y - me.y) < P.laser.maxLength &&
-    clearSegment(enemy.x, enemy.y, me.x, me.y, 0));
-  if (!lasers.length) { mem.coverCell = -1; return false; }
+    enemy.cooldown < 1.2 && Math.hypot(enemy.x - me.x, enemy.y - me.y) < P.laser.maxLength);
+  if (!lasers.some(enemy => laserExposed(enemy.x, enemy.y, me.x, me.y))) {
+    mem.coverCell = -1;
+    return false;
+  }
   function covered(cell) {
-    const x = centerX(cell), y = centerY(cell);
-    for (const enemy of lasers) {
-      const gap = Math.hypot(x - enemy.x, y - enemy.y);
-      const nx = -(y - enemy.y) / gap * (tankR + 2), ny = (x - enemy.x) / gap * (tankR + 2);
-      if (clearSegment(enemy.x, enemy.y, x, y, 0) ||
-          clearSegment(enemy.x, enemy.y, x + nx, y + ny, 0) ||
-          clearSegment(enemy.x, enemy.y, x - nx, y - ny, 0)) return false;
+    const x = centerX(cell), y = centerY(cell), r2 = (tankR + 3) ** 2;
+    for (const enemy of lasers) if (laserExposed(enemy.x, enemy.y, x, y)) return false;
+    // A wall shadow crossed by an already observed bounce line is not a
+    // destination: keep moving through it toward a usable piece of cover.
+    for (let i = 0; i < laserSegCount; i++) {
+      const b = i * 5;
+      if (laserSegs[b + 4] >= 0.7 && segDist2(x, y, laserSegs[b], laserSegs[b + 1], laserSegs[b + 2], laserSegs[b + 3]) < r2) return false;
     }
     return true;
   }
@@ -1193,7 +1206,6 @@ function planLaserCover(state, plan) {
   flood(best, fieldLoot);
   followField(plan, fieldLoot, centerX(best), centerY(best), me);
   plan.mode = 'cover';
-  // 瞄准仍交给开火判定；紧急位移不再为原对决的远期炮口朝向让路。
   plan.aimAngle = null;
   return true;
 }
@@ -1222,6 +1234,10 @@ function makePlan(state, target) {
     plan.aimAngle = aim.angle;
   }
   const loot = pickLoot(state);
+  // The current duel's hypothetical shot/zone discount survives a cover
+  // interruption; actual bullets and every third party retain full danger.
+  plan.duel = !!target && armed && aimTime <= TUNE.duelTime &&
+    Math.hypot(target.x - me.x, target.y - me.y) < TUNE.duelRange;
   if (planLaserCover(state, plan)) return plan;
   if (loot && aimTime > TUNE.quickShot && urgency(state) < 0.7) {
     followField(plan, fieldLoot, loot.x, loot.y, me);
@@ -1419,10 +1435,7 @@ function scoreCandidate(ci, me, plan) {
       // crossing only the current muzzle line is not. The flank rays include
       // the body extent, so barely clipping a wall corner is still exposed.
       if (gap < P.laser.maxLength && turnNeeded <= P.turnSpeed * elapsed + 0.12) {
-        const nx = -dy / gap * laserR, ny = dx / gap * laserR;
-        if (clearSegment(ex, ey, x, y, 0) ||
-            clearSegment(ex, ey, x + nx, y + ny, 0) ||
-            clearSegment(ex, ey, x - nx, y - ny, 0)) exposure = 1;
+        if (laserExposed(ex, ey, x, y)) exposure = 1;
       }
       for (let s = fan.from; s < fan.to; s++) {
         const b = s * 5;
