@@ -19,7 +19,8 @@ module.exports = {
     if (fire) nextShotTime = state.time + 1.8;
     return {
       move: 0,
-      turn: Math.max(-0.22, Math.min(0.22, aim / (state.physics.turnSpeed * state.dt))),
+      // classic 控制只有 -1/0/1：用约 22% 的占空比保持原有的慢速转向。
+      turn: Math.abs(aim) < 0.03 || state.tick % 9 >= 2 ? 0 : Math.sign(aim),
       fire,
       special: false,
     };

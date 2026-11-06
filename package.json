@@ -1,0 +1,15 @@
+{
+  "name": "tank-arena-platform",
+  "version": "2.0.0",
+  "private": true,
+  "description": "确定性、可复现、可评测的迷宫坦克 AI 竞技平台",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22.13" },
+  "bin": { "arena": "./tournament/cli.js" },
+  "scripts": {
+    "test": "node --test --test-reporter=spec \"test/*.test.js\"",
+    "arena": "node tournament/cli.js",
+    "build:kit": "node tools/build-starter-kit.js"
+  }
+}
