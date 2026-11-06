@@ -13,4 +13,6 @@
 
 本仓库保存公开的静态发布文件，通过 `main` 分支根目录发布 GitHub Pages。训练场 ZIP 位于 Releases，避免把大型二进制文件写入 Git 历史。更新静态文件后推送 `main` 即会触发 Pages 更新。
 
+网页维护默认直接更新 GitHub Pages；本地 5173 服务已关闭，不自动重新启动。只有用户明确要求本地预览时才启用本地服务。
+
 MIT License，见 [LICENSE](LICENSE)。
