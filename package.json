@@ -3,17 +3,21 @@
   "version": "1.2.0",
   "private": true,
   "type": "module",
-  "description": "Tank Trouble 网页竞技场及本地开发、训练打包工具",
+  "description": "Tank Trouble Web 唯一维护版本、策略批量对战与本地训练工具",
   "scripts": {
-    "dev": "node web-challenge/serve.mjs --dev",
-    "build": "node web-challenge/build.mjs",
-    "preview": "node web-challenge/serve.mjs",
     "kit:package": "node training/scripts/package-ai-kit.mjs",
     "training:package": "node training/scripts/package-training-arena.mjs",
-    "training": "electron training/server/training-server.cjs"
+    "training": "electron training/server/training-server.cjs",
+    "arena": "node research/proteus/run.mjs"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "license": "MIT",
-  "dependencies": { "archiver": "5.3.2" },
-  "devDependencies": { "electron": "^33.0.0" }
+  "dependencies": {
+    "archiver": "5.3.2"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
 }

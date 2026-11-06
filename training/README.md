@@ -11,7 +11,7 @@
 在持有主项目的 Windows 用户下打开 PowerShell：
 
 ```powershell
-Set-Location 'D:\Documents\ChatGPT\坦克动荡AI斗蛐蛐\tank-trouble\web-challenge'
+Set-Location 'D:\Documents\ChatGPT\tank-trouble-ai-arena'
 npm run training
 ```
 
@@ -152,7 +152,7 @@ Add-LocalGroupMember -SID 'S-1-5-32-545' -Member $trainingUser
 
 ```powershell
 $trainingAccount = "$env:COMPUTERNAME\DSHTrainer"
-$arenaRepository = 'D:\Documents\ChatGPT\坦克动荡AI斗蛐蛐\tank-trouble\web-challenge'
+$arenaRepository = 'D:\Documents\ChatGPT\tank-trouble-ai-arena'
 $arenaProject = $arenaRepository
 $trainingWorkspace = 'D:\DSH_Workspace'
 New-Item -ItemType Directory -Path $trainingWorkspace -Force | Out-Null

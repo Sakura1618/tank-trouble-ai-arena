@@ -4,7 +4,7 @@ import { BotSandbox, IDLE } from '../src/arena/sandbox.js';
 import { ArenaRenderer } from '../src/arena/render.js';
 import { MatchRecording } from '../src/arena/recording.js';
 
-// 与桌面竞技场共用世界、观察和隔离执行器；本模块只协调浏览器时间与真人输入。
+// Web 入口协调浏览器节奏与输入；世界、观察、隔离执行器也供无头评测使用。
 export class ChallengeGame {
   constructor({ canvas, onUpdate = () => {}, onEnd = () => {}, onNotice = () => {} }) {
     Object.assign(this, { onUpdate, onEnd, onNotice });
@@ -15,6 +15,8 @@ export class ChallengeGame {
     this.bots = [];
     this.humanAction = { ...IDLE };
     this.simRate = 1;
+    this.speed = 1;
+    this.headless = false;
     this.session = 0;
     this.frame = null;
   }
@@ -24,11 +26,13 @@ export class ChallengeGame {
     this.onUpdate({ world: this.world, status, simRate: this.simRate });
   }
 
-  async start({ players, rules, seed }) {
+  async start({ players, rules, seed, round = 1 }) {
     this.stop();
     const session = this.session;
     this.players = players;
     this.rules = rules;
+    this.speed = players.some(p => p.kind === 'human') ? 1 : rules.speed;
+    this.headless = !players.some(p => p.kind === 'human') && rules.headless;
     this.humanAction = { ...IDLE };
     this.simRate = 1;
     this.slowDevice = false;
@@ -39,7 +43,8 @@ export class ChallengeGame {
     });
     const recordingId = crypto.randomUUID();
     this.recorder = new MatchRecording(this.world, {
-      id: recordingId, sessionId: recordingId, round: 1, entrants: players, detail: true,
+      id: recordingId, sessionId: recordingId, round, entrants: players,
+      detail: players.some(p => p.kind === 'human') || rules.detailRecording,
     });
     this.bots = players.filter(p => p.kind === 'ai').map(p => new BotSandbox(p));
     const world = this.world, bots = this.bots;
@@ -67,6 +72,13 @@ export class ChallengeGame {
       move: action.move ?? 0, turn: action.turn ?? 0,
       fire: !!action.fire, special: !!action.special,
     };
+  }
+
+  setPlayback(speed, headless) {
+    this.speed = speed;
+    this.headless = headless;
+    if (this.world) this.resetPacing();
+    this.update();
   }
 
   async call(bot, fn) {
@@ -133,26 +145,28 @@ export class ChallengeGame {
       if (world.result) break;
       world.step(actions);
       this.recorder.capture(world, actions);
-      this.renderer.consume(world, false);
+      this.renderer.consume(world, this.headless);
 
       const now = performance.now();
       if (now - this.sampleTime >= 2000) {
-        this.simRate = Math.min(1, (world.tick - this.sampleTick) * DT * 1000 / (now - this.sampleTime));
-        const slow = this.simRate < 0.85;
+        this.simRate = (world.tick - this.sampleTick) * DT * 1000 / (now - this.sampleTime);
+        const slow = !this.headless && this.simRate < this.speed * 0.85;
         if (slow !== this.slowDevice) {
           this.slowDevice = slow;
           this.onNotice(slow
-            ? `当前设备约以 ${Math.round(this.simRate * 100)}% 实时速度运行。物理仍为固定 60 Hz，弹速、碰撞与 AI 的 50 ms 决策预算保持原规则。`
-            : '设备已恢复实时运行。');
+            ? `当前模拟速度 ${this.simRate.toFixed(2)}×，目标 ${this.speed}×。物理仍为固定 60 Hz，弹速、碰撞与 AI 的 50 ms 决策预算保持原规则。`
+            : '已达到所选观战速度。');
         }
         this.sampleTime = now;
         this.sampleTick = world.tick;
       }
       if (now - this.lastUpdate >= 100) { this.lastUpdate = now; this.update(); }
       // 设备较慢时放慢模拟时间，不跳过物理 Tick，也不在恢复后突发追帧。
-      this.due = Math.max(this.due + DT * 1000, now);
-      const wait = this.due - performance.now();
-      if (wait > 0) await new Promise(resolve => setTimeout(resolve, wait));
+      if (!this.headless) {
+        this.due = Math.max(this.due + DT * 1000 / this.speed, now);
+        const wait = this.due - performance.now();
+        if (wait > 0) await new Promise(resolve => setTimeout(resolve, wait));
+      }
     }
     if (session === this.session && world.result) this.finish();
   }
@@ -166,7 +180,7 @@ export class ChallengeGame {
       const renderDt = (now - previousFrame) / 1000;
       previousTick = this.world.tick;
       previousFrame = now;
-      this.renderer.draw(this.world, elapsed, this.status !== 'running', renderDt);
+      if (!this.headless) this.renderer.draw(this.world, elapsed, this.status !== 'running', renderDt);
       this.frame = requestAnimationFrame(draw);
     };
     this.frame = requestAnimationFrame(draw);

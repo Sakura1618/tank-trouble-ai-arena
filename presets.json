@@ -74,6 +74,16 @@
     "script": "./bots/astra-g3-imperator.js"
   },
   {
+    "id": "astra-g4-proteus",
+    "name": "Astra Gen4 · 无相",
+    "codename": "PROTEUS",
+    "color": "#79e0d5",
+    "description": "无形可测，无隙可乘。提炼先机的物理规划与退路搜索，联合评估多方威胁。",
+    "group": "astra",
+    "order": 4,
+    "script": "./bots/astra-g4-proteus.js"
+  },
+  {
     "id": "chatgpt-g1-weaver",
     "name": "ChatGPT Gen1「织局者」",
     "codename": "WEAVER",

@@ -13,13 +13,15 @@ const GROUPS = [
   { id: 'opus', name: 'Opus' },
 ];
 const emptyStats = () => ({ played: 0, wins: 0, losses: 0, draws: 0, streak: 0, best: 0, opponents: {} });
-let settings = {}, stats = emptyStats(), storageAvailable = true;
+let settings = {}, stats = emptyStats(), aiStats = {}, storageAvailable = true;
 try {
   const saved = JSON.parse(localStorage.getItem(STORAGE) || 'null');
-  if (saved) { settings = saved.settings || {}; stats = { ...emptyStats(), ...saved.stats }; }
+  if (saved) { settings = saved.settings || {}; stats = { ...emptyStats(), ...saved.stats }; aiStats = saved.aiStats || {}; }
 } catch { storageAvailable = false; }
 let mode = settings.mode || 'human', sequence = 0, presets = [], seats = [], lastMatch = null;
-let noticeTimer, starting = false, importTarget = null, hudSignature = '';
+let noticeTimer, starting = false, importTarget = null, replaceSeat = null, hudSignature = '';
+let series = null, nextRoundTimer, latestRecording = null;
+const recentResults = [];
 const sourceCache = new Map();
 
 function notice(message, error = false) {
@@ -30,14 +32,16 @@ function notice(message, error = false) {
   noticeTimer = setTimeout(() => { $('notice').hidden = true; }, error ? 11000 : 6500);
 }
 function save() {
-  try { localStorage.setItem(STORAGE, JSON.stringify({ settings, stats })); }
+  try { localStorage.setItem(STORAGE, JSON.stringify({ settings, stats, aiStats })); }
   catch { if (storageAvailable) notice('浏览器未允许保存本地数据，本次游戏仍可继续；关闭页面后战绩不会保留。', true); storageAvailable = false; }
 }
 const replayPanel = new ReplayPanel({ notice });
 function collectSettings() {
   settings = { mode, name: $('human-name').value.trim() || '挑战者', color: $('human-color').value,
     map: $('map').value, timeout: Number($('timeout').value), powerups: $('powerups').value === 'on',
-    wallBreak: false, touch: $('touch-setting').checked };
+    wallBreak: false, touch: $('touch-setting').checked,
+    rounds: Math.max(0, Math.floor(Number($('rounds').value))), speed: Number($('speed').value),
+    headless: $('headless').checked, detailRecording: $('detail-recording').checked, rankSort: $('rank-sort').value };
   save();
 }
 function node(tag, text, className) {
@@ -59,6 +63,7 @@ function setMode(next) {
   $('human-mode').classList.toggle('selected', mode === 'human');
   $('ai-mode').classList.toggle('selected', mode === 'ai');
   $('human-settings').hidden = mode === 'ai';
+  $('ai-settings').hidden = mode !== 'ai';
   $('start-match').firstChild.textContent = mode === 'human' ? '进入战场 ' : '开始观战 ';
   renderRoster();
   collectSettings();
@@ -90,6 +95,13 @@ function renderRoster() {
     const remove = node('button', '×'); remove.title = `移除 ${seat.name}`;
     remove.onclick = () => { seats = seats.filter(p => p !== seat); renderRoster(); };
     row.append(enabled, color, name, controller, remove);
+    if (seat.imported) {
+      row.classList.add('imported-seat');
+      const replace = node('button', '替换', 'replace-script');
+      replace.title = '替换脚本，保留名称、颜色与战绩身份';
+      replace.onclick = () => { replaceSeat = seat; $('file-input').multiple = false; $('file-input').click(); };
+      row.insertBefore(replace, remove);
+    }
     $('roster').append(row);
   }
   $('roster-empty').hidden = seats.length > 0;
@@ -143,8 +155,18 @@ function renderStats() {
 }
 function recordResult(result) {
   const human = game.players.find(p => p.kind === 'human');
-  if (!human) return;
-  const outcome = result.winnerId === human.id ? 'wins' : result.winnerId ? 'losses' : 'draws';
+  if (!human) {
+    for (const entrant of game.players) {
+      const player = result.players.find(p => p.id === entrant.id);
+      const record = aiStats[entrant.recordId] ||= { name: entrant.name, played: 0, wins: 0, losses: 0, draws: 0, kills: 0, suicides: 0, timeouts: 0 };
+      const outcome = player.forfeit ? 'losses' : result.winnerId === entrant.id ? 'wins' : result.winnerId ? 'losses' : 'draws';
+      record.name = entrant.name; record.played++; record[outcome]++; record.kills += player.kills;
+      record.suicides += game.recording.events.filter(event => event.type === 'death' && event.victimId === entrant.id && event.selfHit).length;
+      if (player.forfeit?.timeout) record.timeouts++;
+    }
+    save(); renderRanking(); return;
+  }
+  const outcome = result.players.find(p => p.id === human.id).forfeit ? 'losses' : result.winnerId === human.id ? 'wins' : result.winnerId ? 'losses' : 'draws';
   stats.played++; stats[outcome]++;
   stats.streak = outcome === 'wins' ? stats.streak + 1 : 0;
   stats.best = Math.max(stats.best, stats.streak);
@@ -155,21 +177,59 @@ function recordResult(result) {
   }
   save(); renderStats();
 }
+function renderRanking() {
+  const rate = player => player.played ? player.wins / player.played : 0;
+  const players = Object.values(aiStats).sort((a, b) => $('rank-sort').value === 'rate'
+    ? rate(b) - rate(a) || b.wins - a.wins : b.wins - a.wins || rate(b) - rate(a));
+  for (const id of ['ai-ranking', 'live-ranking']) {
+    const table = node('table'), head = node('thead'), row = node('tr'), body = node('tbody');
+    for (const label of ['选手', '局', '胜', '负', '平', '击杀', '自杀', '超时', '胜率']) row.append(node('th', label));
+    head.append(row);
+    for (const player of players) {
+      const line = node('tr');
+      for (const value of [player.name, player.played, player.wins, player.losses, player.draws, player.kills, player.suicides, player.timeouts, `${(rate(player) * 100).toFixed(1)}%`]) line.append(node('td', value));
+      body.append(line);
+    }
+    table.append(head, body); $(id).replaceChildren(table);
+  }
+}
+function rememberResult(result) {
+  latestRecording = game.recording;
+  const winner = game.players.find(p => p.id === result.winnerId);
+  recentResults.unshift({ label: `${winner ? `${winner.name} 获胜` : result.reason === 'all_forfeit' ? '全部故障判负' : '平局'} · ${(result.ticks / 60).toFixed(1)} 秒 · 种子 ${game.world.seed}` });
+  recentResults.length = Math.min(recentResults.length, 10);
+  $('recent-results').replaceChildren(...recentResults.map(result => node('p', result.label)));
+  $('latest-recording').disabled = false; $('live-recording').disabled = false;
+}
+function showLatestRecording() {
+  game.pause();
+  if (latestRecording.states?.length) replayPanel.open(latestRecording);
+  else downloadRecording(latestRecording);
+}
 function showResult(result) {
   controls.setEnabled(false);
   recordResult(result);
+  rememberResult(result);
+  series.completed++;
+  if (series.active && (!series.total || series.completed < series.total)) {
+    $('series-progress').textContent = `已完成 ${series.completed} / ${series.total || '∞'} 局 · 准备下一局`;
+    nextRoundTimer = setTimeout(() => startMatch(true, false, true), game.headless ? 0 : 700 / game.speed);
+    return;
+  }
+  series.active = false;
   const human = game.players.find(p => p.kind === 'human');
   const winner = game.players.find(p => p.id === result.winnerId);
   $('result-title').textContent = human ? winner?.id === human.id ? '胜利' : winner ? '失败' : '平局' : winner ? `${winner.name} 获胜` : '本局无胜者';
   const reason = { timeout: '达到单局时限', mutual: '全部坦克阵亡', all_forfeit: '全部 AI 故障判负', survivor: '最后一辆坦克存活' }[result.reason];
   const opponents = game.players.filter(p => p.kind === 'ai').map(p => p.name).join('、');
-  $('result-summary').textContent = `${human ? `对手：${opponents}。` : ''}历时 ${(result.ticks / 60).toFixed(1)} 秒 · ${reason} · 种子 ${game.world.seed}`;
+  $('result-summary').textContent = `${human ? `对手：${opponents}。` : `本赛程完成 ${series.completed} 局。`}历时 ${(result.ticks / 60).toFixed(1)} 秒 · ${reason} · 种子 ${game.world.seed}`;
   $('result-details').replaceChildren(...result.players.map(resultPlayer => {
     const player = game.players.find(p => p.id === resultPlayer.id);
     return node('p', `${player.name} · ${resultPlayer.kills} 击杀${resultPlayer.forfeit ? ` · 故障判负：${resultPlayer.forfeit.message}` : ''}`);
   }));
-  $('view-replay').disabled = !game.recording?.states?.length;
-  $('download-recording').disabled = !game.recording;
+  $('view-replay').disabled = !latestRecording?.states?.length;
+  $('download-recording').disabled = !latestRecording;
+  $('download-recording').textContent = latestRecording?.states?.length ? '下载录像' : '下载日志';
   $('result-dialog').showModal();
 }
 const game = new ChallengeGame({
@@ -182,10 +242,11 @@ const game = new ChallengeGame({
     $('pause-title').textContent = status === 'loading' ? '准备开战' : status === 'error' ? '对局已停止' : '已暂停';
     $('pause-message').textContent = status === 'loading' ? '正在加载 AI…' : status === 'error' ? '可返回调整选手，或重新开始。' : '点击继续对战，或按 Esc 返回。';
     $('resume').hidden = status !== 'paused';
+    $('headless-overlay').hidden = !game.headless;
     if (!world) return;
     const seconds = Math.floor(world.tick / 60);
     $('clock').textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-    $('alive-count').textContent = `${world.alive.length}/${world.actors.length} 存活`;
+    $('alive-count').textContent = `${world.alive.length}/${world.actors.length} 存活 · ${world.maze.cols}×${world.maze.rows}`;
     const signature = world.actors.map(p => `${p.id}:${p.tank.alive}:${p.forfeit?.code}`).join();
     if (signature !== hudSignature) {
       hudSignature = signature;
@@ -198,7 +259,7 @@ const game = new ChallengeGame({
     const human = game.players.find(p => p.kind === 'human');
     const tank = world.actors.find(p => p.id === human?.id)?.tank;
     $('weapon-status').textContent = !tank ? '观战中 · 所有选手本地运算' : !tank.alive ? '你已阵亡 · 继续观战' : [tank.laserShots ? `激光 ×${tank.laserShots}` : tank.scatterShots ? `散射 ×${tank.scatterShots}` : '普通炮弹', tank.mineCharges ? `地雷 ×${tank.mineCharges}` : '', tank.shield ? `护盾 ${Math.ceil(tank.shieldTimer)}s` : ''].filter(Boolean).join(' · ');
-    $('performance-status').textContent = simRate < 0.85 ? `设备负载较高 · ${Math.round(simRate * 100)}% 实时速度 · 固定 60Hz` : '60 Hz 物理 · 本地运行';
+    $('performance-status').textContent = `${simRate.toFixed(2)}× 实际速度 · 固定 60 Hz · 50 ms 决策预算`;
   }, onEnd: showResult, onNotice: message => notice(message, true),
 });
 const controls = new HumanControls({ joystick: $('joystick'), knob: $('knob'), fireButton: $('fire-button'), specialButton: $('special-button'),
@@ -212,7 +273,7 @@ function togglePause() {
 function touchLayout() {
   $('battle').classList.toggle('touch-enabled', $('touch-setting').checked && game.players.some(p => p.kind === 'human'));
 }
-async function startMatch(repeat = false, sameSeed = false) {
+async function startMatch(repeat = false, sameSeed = false, nextRound = false) {
   if (starting) return;
   collectSettings();
   let players, rules;
@@ -223,16 +284,24 @@ async function startMatch(repeat = false, sameSeed = false) {
     const chosenHuman = selected.find(p => p.kind === 'human');
     players = selected.map(p => ({ ...p, kind: mode === 'ai' ? 'ai' : p.kind }));
     if (mode === 'human' && !chosenHuman) players.unshift({ id: 'human', name: settings.name, color: settings.color, kind: 'human' });
-    rules = { timeout: settings.timeout, powerups: settings.powerups, wallBreak: settings.wallBreak, map: settings.map };
+    rules = { timeout: settings.timeout, powerups: settings.powerups, wallBreak: settings.wallBreak, map: settings.map,
+      speed: settings.speed, headless: settings.headless, detailRecording: settings.detailRecording };
   }
   if (players.length < 2 || !players.some(p => p.kind === 'ai')) { notice('请至少启用两个参赛席位，其中至少一个为 AI。观战模式需要两名 AI。', true); return; }
+  clearTimeout(nextRoundTimer);
+  const aiOnly = players.every(p => p.kind === 'ai');
+  if (!nextRound) series = { active: aiOnly && !sameSeed, completed: 0, total: aiOnly && !sameSeed ? settings.rounds : 1 };
   starting = true;
   $('result-dialog').close();
   $('lobby').hidden = true; $('battle').hidden = false; document.body.classList.add('playing');
   $('battle-mode').textContent = players.some(p => p.kind === 'human') ? 'HUMAN vs AI' : 'AI vs AI';
+  $('series-toolbar').hidden = !aiOnly; $('live-ranking-panel').hidden = !aiOnly;
+  $('series-progress').textContent = `第 ${series.completed + 1} / ${series.total || '∞'} 局`;
+  $('live-speed').value = String(rules.speed); $('live-headless').checked = rules.headless;
+  $('live-speed').disabled = rules.headless;
   hudSignature = ''; lastMatch = { players, rules }; controls.reset();
   try {
-    const started = game.start({ players, rules, seed });
+    const started = game.start({ players, rules, seed, round: series.completed + 1 });
     lastMatch.seed = game.world.seed;
     touchLayout(); await started; $('battle-canvas').focus({ preventScroll: true });
   }
@@ -240,16 +309,24 @@ async function startMatch(repeat = false, sameSeed = false) {
   finally { starting = false; }
 }
 function returnToLobby() {
+  clearTimeout(nextRoundTimer);
+  if (series) series.active = false;
   game.stop(); controls.setEnabled(false); $('result-dialog').close();
   $('battle').hidden = true; $('lobby').hidden = false; document.body.classList.remove('playing');
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 }
 async function importFiles(files) {
   const target = importTarget; importTarget = null;
+  const replacement = replaceSeat; replaceSeat = null; $('file-input').multiple = true;
   for (const file of files) {
     if (!/\.(c?js)$/i.test(file.name)) { notice(`${file.name} 不是 JavaScript 文件。`, true); continue; }
     try {
       const source = await file.text();
+      if (replacement) {
+        replacement.source = source; replacement.filename = file.name;
+        renderRoster(); notice(`${replacement.name} 的脚本已替换，名称、颜色与战绩身份保留。`);
+        break;
+      }
       const preset = target && files.length === 1 ? target : { name: file.name.replace(/\.(c?js)$/i, ''), color: COLORS[sequence % COLORS.length] };
       addSeat(preset, source, true, file.name);
       notice(`${file.name} 已读入本机。开始对局时会在隔离环境中加载；文件没有上传。`);
@@ -274,14 +351,16 @@ $('watch-mode').onclick = () => {
   $('match-setup').scrollIntoView({ behavior: 'smooth' });
 };
 $('human-mode').onclick = () => setMode('human'); $('ai-mode').onclick = () => setMode('ai');
-for (const id of ['import-top', 'import-ai']) $(id).onclick = () => { importTarget = null; $('file-input').click(); };
+for (const id of ['import-top', 'import-ai']) $(id).onclick = () => { importTarget = null; replaceSeat = null; $('file-input').multiple = true; $('file-input').click(); };
 $('file-input').onchange = e => importFiles([...e.target.files]);
-$('file-input').oncancel = () => { importTarget = null; };
+$('file-input').oncancel = () => { importTarget = null; replaceSeat = null; $('file-input').multiple = true; };
 $('pause').onclick = togglePause; $('resume').onclick = togglePause;
 $('restart').onclick = () => startMatch(true); $('again').onclick = () => startMatch(true);
 $('same-seed').onclick = () => startMatch(true, true);
-$('view-replay').onclick = () => replayPanel.open(game.recording);
-$('download-recording').onclick = () => downloadRecording(game.recording);
+$('view-replay').onclick = () => replayPanel.open(latestRecording);
+$('download-recording').onclick = () => downloadRecording(latestRecording);
+$('latest-recording').onclick = showLatestRecording;
+$('live-recording').onclick = showLatestRecording;
 $('open-recording').onclick = () => replayPanel.openFile();
 $('return').onclick = returnToLobby; $('change-opponent').onclick = returnToLobby;
 $('result-dialog').addEventListener('cancel', () => returnToLobby());
@@ -293,12 +372,22 @@ $('fullscreen').onclick = async () => {
   } catch { notice('此浏览器未提供全屏，请将手机横屏使用。'); }
 };
 $('reset-records').onclick = () => {
-  if (confirm('清除本浏览器的网页挑战战绩？此操作不可撤销，不影响桌面竞技场。')) { stats = emptyStats(); save(); renderStats(); }
+  if (confirm('清除本浏览器的真人挑战战绩？此操作不可撤销，不影响 AI 排行榜。')) { stats = emptyStats(); save(); renderStats(); }
 };
-for (const id of ['human-name', 'human-color', 'map', 'timeout', 'powerups', 'touch-setting']) $(id).addEventListener('change', collectSettings);
+$('reset-ai-records').onclick = () => {
+  if (confirm('清除本浏览器的 AI 排行榜？此操作不可撤销，不影响真人挑战战绩。')) { aiStats = {}; save(); renderRanking(); }
+};
+$('rank-sort').onchange = () => { collectSettings(); renderRanking(); };
+for (const id of ['human-name', 'human-color', 'map', 'timeout', 'powerups', 'touch-setting', 'rounds', 'speed', 'headless', 'detail-recording']) $(id).addEventListener('change', collectSettings);
+for (const id of ['live-speed', 'live-headless']) $(id).onchange = () => {
+  const speed = Number($('live-speed').value), headless = $('live-headless').checked;
+  $('speed').value = String(speed); $('headless').checked = headless; $('live-speed').disabled = headless;
+  collectSettings(); lastMatch.rules.speed = speed; lastMatch.rules.headless = headless;
+  game.setPlayback(speed, headless);
+};
 window.addEventListener('blur', () => game.pause());
 document.addEventListener('visibilitychange', () => { if (document.hidden) game.pause(); });
-window.addEventListener('pagehide', () => game.stop());
+window.addEventListener('pagehide', () => { clearTimeout(nextRoundTimer); game.stop(); });
 window.addEventListener('keydown', event => {
   if (event.code === 'Escape' && !event.defaultPrevented && !event.repeat && !controls.enabled && ['running', 'paused'].includes(game.status)) { event.preventDefault(); togglePause(); }
 });
@@ -307,7 +396,10 @@ $('human-name').value = settings.name || '挑战者'; $('human-color').value = s
 $('map').value = settings.map || 'random'; $('timeout').value = String(settings.timeout || 60);
 $('powerups').value = settings.powerups === false ? 'off' : 'on';
 $('touch-setting').checked = settings.touch ?? matchMedia('(pointer:coarse)').matches;
-setMode(mode); renderStats();
+$('rounds').value = settings.rounds ?? 10; $('speed').value = String(settings.speed || 1);
+$('headless').checked = settings.headless ?? false; $('detail-recording').checked = settings.detailRecording ?? false;
+$('rank-sort').value = settings.rankSort || 'wins';
+setMode(mode); renderStats(); renderRanking();
 $('quick-start').disabled = true; $('start-match').disabled = true;
 try {
   const response = await fetch('./presets.json');

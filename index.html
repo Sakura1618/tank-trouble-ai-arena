@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#09111c">
   <meta name="description" content="在你自己的手机或电脑上，亲自驾驶坦克挑战 JavaScript AI。无需登录，纯本地计算。">
-  <title>Tank Trouble · 真人挑战 AI</title>
+  <title>Tank Trouble · AI 竞技场</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./web-challenge/style.css">
   <link rel="stylesheet" href="./web-challenge/replay-panel.css">
@@ -31,6 +31,11 @@
         <div id="human-settings" class="field-row"><label class="grow">你的名字<input id="human-name" maxlength="24" value="挑战者" autocomplete="nickname"></label><label>坦克颜色<input id="human-color" type="color" value="#43dfbd"></label></div>
         <div class="field-row"><label class="grow">地图<select id="map"><option value="random">随机迷宫 · 竞技场默认</option><option value="sparse">稀疏格栅</option><option value="symmetric">对称竞技场</option><option value="rooms">房间走廊</option></select></label><label class="grow">单局时限<select id="timeout"><option value="60">60 秒 · 默认</option><option value="120">120 秒</option><option value="180">180 秒</option><option value="300">300 秒</option></select></label></div>
         <div class="field-row"><label class="grow">玩法<select id="powerups"><option value="on">有道具对战</option><option value="off">纯走位开火 · 无道具</option></select></label></div>
+        <div id="ai-settings" hidden>
+          <div class="field-row"><label class="grow">连续场次<input id="rounds" type="number" min="0" max="1000000" step="1" value="10"></label><label class="grow">观战速度<select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option></select></label></div>
+          <div class="check-row"><label><input id="headless" type="checkbox"> 无画面 · 尽速</label><label><input id="detail-recording" type="checkbox"> 详细录制</label></div>
+          <p class="hint">0 场表示持续比赛，返回大厅停止。每局随机换图，始终使用 60 Hz 物理与 50 ms 决策预算。仅暂存最近一局录像。</p>
+        </div>
         <div class="check-row"><span class="hint">两种玩法均不破坏墙体</span><label><input type="checkbox" id="touch-setting"> 显示触控</label></div>
         <p class="hint">多名选手自由混战，真人最多一席。</p>
         <button id="start-match" class="primary full">进入战场 <span>→</span></button>
@@ -50,13 +55,16 @@
       <div class="panel"><div class="section-heading"><h2>挑战记录</h2><button id="reset-records" class="text-button">重置</button></div><div id="stats" class="stats"></div><details><summary>按对手查看</summary><div id="opponent-records"></div></details><p class="hint">战绩仅保存在当前浏览器。</p></div>
       <div class="panel"><h2>操作说明</h2><div class="instructions"><p><kbd>W</kbd><kbd>S</kbd> 前进 / 倒车　<kbd>A</kbd><kbd>D</kbd> 原地转向</p><p><kbd>Space</kbd> 按住开火　<kbd>Shift</kbd> 布雷　<kbd>Esc</kbd> 暂停</p><p>手机横屏：左摇杆前后移动、左右转向；右侧开火、布雷。</p><p>反弹炮弹也会击中自己。</p></div></div>
     </section>
+    <section class="panel arena-records"><div class="section-heading"><h2>AI 排行榜</h2><div class="record-tools"><select id="rank-sort" aria-label="AI 排行排序"><option value="wins">按胜场</option><option value="rate">按胜率</option></select><button id="reset-ai-records" class="text-button">重置</button></div></div><div id="ai-ranking" class="ranking-scroll"></div><p class="hint">仅统计 AI 对战，保存在当前浏览器。主动击杀不含自杀，脚本超时已计入负场；局时到无胜者计平局。</p><div class="section-heading"><h2>最近赛果</h2><button id="latest-recording" class="text-button" disabled>最近一局录像 / 日志</button></div><div id="recent-results" class="recent-results"><p class="hint">本次打开页面尚未完成对局。</p></div><p class="hint">最近赛果与录像在刷新后清除，需要长期保留请下载。未勾选详细录制时只保存事件与摘要。</p></section>
   </main>
   <section id="battle" class="battle" hidden aria-label="战场">
     <header class="battle-header"><div class="battle-brand">TANK TROUBLE <small id="battle-mode">挑战</small></div><div class="clock"><b id="clock">00:00</b><span id="alive-count"></span></div><nav><button id="fullscreen" title="全屏">全屏</button><button id="pause">暂停</button><button id="restart">重开</button><button id="return">返回</button></nav></header>
     <div id="battle-roster" class="battle-roster"></div>
+    <div id="series-toolbar" class="series-toolbar" hidden><span id="series-progress"></span><label>速度 <select id="live-speed" aria-label="实时观战速度"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option></select></label><label><input id="live-headless" type="checkbox"> 无画面</label><button id="live-recording" class="text-button" disabled>上一局录像 / 日志</button></div>
+    <details id="live-ranking-panel" class="live-ranking-panel" hidden><summary>累计 AI 排行榜</summary><div id="live-ranking" class="ranking-scroll"></div></details>
     <div class="battle-stage">
       <div id="left-controls" class="touch-side left-controls"><div id="joystick" class="joystick" role="group" aria-label="移动转向摇杆"><span class="joy-label top">前进</span><span class="joy-label bottom">倒车</span><span class="joy-label left">↶</span><span class="joy-label right">↷</span><div id="knob" class="knob"></div></div><span class="control-caption">独立前后 · 原地转向</span></div>
-      <div class="canvas-wrap"><canvas id="battle-canvas" tabindex="0" aria-label="坦克对战画面"></canvas><div id="pause-overlay" class="battle-overlay" hidden><div><h2 id="pause-title">已暂停</h2><p id="pause-message">点击继续对战，或按 Esc 返回。</p><button id="resume" class="primary">继续对战</button></div></div></div>
+      <div class="canvas-wrap"><canvas id="battle-canvas" tabindex="0" aria-label="坦克对战画面"></canvas><div id="headless-overlay" class="battle-overlay headless-overlay" hidden><div><h2>快速批量对战</h2><p>画面已关闭，赛果与排行榜持续更新。</p><p>取消「无画面」即可恢复观战。</p></div></div><div id="pause-overlay" class="battle-overlay" hidden><div><h2 id="pause-title">已暂停</h2><p id="pause-message">点击继续对战，或按 Esc 返回。</p><button id="resume" class="primary">继续对战</button></div></div></div>
       <div id="right-controls" class="touch-side right-controls"><button id="special-button" class="special-button">特殊<span>布雷</span></button><button id="fire-button" class="fire-button">开火<span>按住连发</span></button></div>
     </div>
     <div class="battle-footer"><span id="weapon-status">普通炮弹</span><span id="performance-status">60 Hz 物理 · 本地运行</span><span class="keyboard-hint">WASD 移动转向 · Space 开火 · Shift 布雷</span></div>

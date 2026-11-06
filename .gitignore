@@ -14,3 +14,9 @@ training-results/
 *.log
 .env
 .env.*
+
+# Local ORACLE source, checkpoints, opponents and training state are never published.
+/learning-ai/
+/AI_players/
+/arena/gamelogs/
+/arena/replay/
