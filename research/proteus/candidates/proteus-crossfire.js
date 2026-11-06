@@ -8,7 +8,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 crossfire-6：保留 core-5 完整价值网络及动态追瞄，仅在多人时按公开武器、可射时间和接近趋势选择紧急目标。
+ * Gen4 crossfire-7：保留 core-5 完整价值网络及动态追瞄；多人威胁选目标，并仅在新弹实际封住更多安全退路时反压即将开火的激光手。
  *
  * MIT License
  * 
@@ -1939,6 +1939,45 @@ function fireThreshold(state, scatter, victim) {
   return need * (1 - 0.4 * urgency(state));
 }
 
+// A suppression shot must add a constraint that existing real bullets do not
+// already impose. Reuse the public-motion maneuver library and count only
+// branches that survive the old bullets but are hit by this proposed shot.
+function addsLaserPressure(state, enemy, pellets, steps, predicted) {
+  const me = state.self;
+  if (!predicted || enemy.laserShots <= 0 || enemy.cooldown > 0.9 || enemy.shield ||
+      state.enemies.filter(foe => foe.alive).length < 2 ||
+      me.bulletsActive >= P.maxBullets - TUNE.reserveBullets ||
+      !clearSegment(enemy.x, enemy.y, me.x, me.y, 0)) return false;
+  const turnOut = Math.PI / (2 * P.turnSpeed), crossBody = 2 * tankR / P.moveSpeed;
+  const limit = Math.min(steps, Math.ceil((enemy.cooldown + turnOut + crossBody) / (dt * STEP_TICKS)));
+  const hit2 = (tankR + P.bulletRadius) ** 2;
+  let lost = 0, straightLost = 0;
+  for (let m = 0; m < MANEUVERS.length; m++) {
+    const [move, turn, hold] = MANEUVERS[m];
+    sx = enemy.x; sy = enemy.y; sa = enemy.angle;
+    let oldSafe = true, newHit = false;
+    for (let k = 0; k < limit && oldSafe; k++) {
+      stepTank(move, k < hold ? turn : 0);
+      if (k < HORIZON) for (let j = 0; j < threatCount; j++) {
+        if (thVirtual[j] || thOwner[j] === enemy.id || k >= thTo[j]) continue;
+        const dx = sx - thX[j][k], dy = sy - thY[j][k];
+        if (dx * dx + dy * dy < hit2) { oldSafe = false; break; }
+      }
+      for (let p = 0; p < pellets && !newHit; p++) {
+        const dx = sx - shotX[p][k], dy = sy - shotY[p][k];
+        if (dx * dx + dy * dy < hit2) newHit = true;
+      }
+    }
+    if (oldSafe && newHit) {
+      lost++;
+      if (turn === 0) straightLost++;
+    }
+  }
+  // At least one straight aiming/reloading branch and a second independent
+  // maneuver become unsafe. This is measurable pressure, not a random volley.
+  return lost >= 2 && straightLost >= 1;
+}
+
 function chooseFire(state, plan, motion) {
   const me = state.self;
   // 冷却在移动阶段先扣减，剩余不超过一个 Tick 时本 Tick 就能打。
@@ -1984,9 +2023,12 @@ function chooseFire(state, plan, motion) {
       flight = shotSteps;
     }
   }
-  if (!victim || odds < fireThreshold(state, scatter, victim)) return false;
+  if (!victim) return false;
+  const pressure = odds < fireThreshold(state, scatter, victim) &&
+    addsLaserPressure(state, victim, pellets, steps, predicted);
+  if (!pressure && odds < fireThreshold(state, scatter, victim)) return false;
   // 反正躲不掉时换命，否则先保证自己不被这发回弹打死。
-  if (!motion.doomed && !canSurviveShot(me, plan, motion, pellets)) return false;
+  if ((pressure || !motion.doomed) && !canSurviveShot(me, plan, motion, pellets)) return false;
   mem.pendingShot = {
     targetId: victim.id,
     dueTick: state.tick + flight * STEP_TICKS,

@@ -1,4 +1,4 @@
-// PROTEUS research: source-derived public-state motion modelling.
+// PROTEUS research: public-state imminent-fire modelling, based on core5.
 /*
  * Astra Gen4 · 无相（PROTEUS）
  * 「无形可测，无隙可乘。」
@@ -9,7 +9,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 候选 core-1：恢复完整 Opus 机动价值，已选机动与射后安全一致，同 Tick 拾取武器顺序。
+ * Gen4 候选 core-5：以 core-1 为对照，新增移动中持续跟随公开预测轨迹的直射追瞄候选；原风险与价值网络择优。
  *
  * MIT License
  * 
@@ -98,7 +98,7 @@ const TUNE = {
   duelTime: 1.1553,            // 转向加飞行不超过此秒数才算对决。
   duelThreatScale: 0.0934,    // 对决时炮口线与瞬杀圈的代价折扣；真实来弹不打折。
   duelAimWeight: 68.9858,
-  lastShotRange: 70.1767,        // 最后一发只在此距离内用：飞行不足 8 Tick，对手来不及躲。
+  lastShotRange: 70.1767,        // 保留原版保命弹距离；提前使用最后一发未改善小批总体得分。
   reserveBullets: 1,
   escapeAt: 12,             // 沿候选走到这一步再分支检查退路（步）。
   escapeCost: 148.0767,          // 退路被来弹封死的代价。
@@ -1190,6 +1190,7 @@ function makePlan(state, target) {
     plan.foeX = track.px[5];
     plan.foeY = track.py[5];
   }
+  plan.aimTrack = track && track.predicted ? track : null;
   const aim = target && track && track.predicted && armed ? searchAim(me, track) : null;
   const aimTime = aim ? aim.wait + aim.flight : Infinity;
   if (aim) {
@@ -1638,6 +1639,38 @@ function addAimManeuver(me, plan, move, angle) {
   scoreCandidate(ci, me, plan);
 }
 
+// 连续追瞄：每个预测步从本车的候选位置重新算提前角，
+// 避免把一整段移动/横穿后的射击机会等同于当前车位的一条固定朝向。
+// 只使用既有公开轨迹预测，保持同一套来弹、退路、价值网络择优。
+function addTrackingManeuver(me, plan, move) {
+  if (candCount >= MAX_CANDIDATES) return;
+  const track = plan.aimTrack, ci = candCount++, base = ci * HORIZON;
+  specKnown[ci] = 0;
+  sx = me.x;
+  sy = me.y;
+  sa = me.angle;
+  for (let k = 0; k < HORIZON; k++) {
+    let at = k;
+    if (me.laserShots <= 0) {
+      // 两次位置迭代覆盖敌方运动造成的飞行时间变化。
+      for (let j = 0; j < 2; j++) {
+        const flight = Math.max(0, Math.hypot(track.px[at] - sx, track.py[at] - sy) - P.muzzleOffset) / P.bulletSpeed;
+        at = Math.min(PRED_STEPS - 1, k + Math.round(flight / (dt * STEP_TICKS)));
+      }
+    }
+    const angle = Math.atan2(track.py[at] - sy, track.px[at] - sx);
+    const turn = clamp(wrap(angle - sa) / (k === 0 ? turnStep / STEP_TICKS : turnStep), -1, 1);
+    if (k === 0) {
+      candMove[ci] = move;
+      candTurn[ci] = turn;
+    }
+    stepTank(move, turn);
+    storeStep(base, k);
+  }
+  candEndAngle[ci] = sa;
+  scoreCandidate(ci, me, plan);
+}
+
 // 含“先转后走”：履带只能沿车头动，垂直弹道前往往要先转向。
 function generateCandidates(me, plan) {
   if (candidatesReady) return;
@@ -1654,6 +1687,9 @@ function generateCandidates(me, plan) {
   }
   if (plan.aimAngle !== null) {
     for (const move of [0, 1, -1]) addAimManeuver(me, plan, move, plan.aimAngle);
+  }
+  if (plan.aimTrack && clearSegment(me.x, me.y, plan.aimTrack.px[0], plan.aimTrack.py[0], P.bulletRadius)) {
+    for (const move of [0, 1, -1]) addTrackingManeuver(me, plan, move);
   }
   if (plan.foeSeen) {
     const facing = Math.atan2(plan.foeY - me.y, plan.foeX - me.x);
@@ -1994,8 +2030,8 @@ function decide(state) {
   flood(cellIndex(state.self.x, state.self.y), fieldMe);
   const target = pickTarget(state);
   predictEnemies(state, target);
-  useModeledTrajectory();
   buildThreats(state);
+  addModeledShot(state);
   const plan = makePlan(state, target);
   const motion = chooseMotion(state, plan);
   const fire = chooseFire(state, plan, motion);
@@ -2007,7 +2043,6 @@ function decide(state) {
   else if (spent < TUNE.softBudgetMs * 0.4) mem.scale = Math.min(1, mem.scale * 1.02);
   return { move: motion.move, turn: motion.turn, fire, special };
 }
-
 
 // Public-state opponent model: an embedded, unmodified decision architecture is
 // an extra motion expert, not access to an opponent instance or its private state.
@@ -4008,7 +4043,11 @@ function decide(state) {
   if (spent > TUNE.softBudgetMs) mem.scale = Math.max(0.3, mem.scale * 0.85);
   else if (spent < TUNE.softBudgetMs * 0.4) mem.scale = Math.min(1, mem.scale * 1.02);
   const base = motion.ci * HORIZON;
-  return { move: motion.move, turn: motion.turn, fire, special,
+  sx = state.self.x; sy = state.self.y; sa = state.self.angle;
+  tickTank(motion.move, motion.turn);
+  const firingAngle = sa, barrel = muzzleDistance(sx, sy, Math.cos(sa), Math.sin(sa));
+  const firingX = sx + Math.cos(sa) * barrel, firingY = sy + Math.sin(sa) * barrel;
+  return { firingX, firingY, firingAngle, move: motion.move, turn: motion.turn, fire, special,
     px: rollX.slice(base, base + HORIZON), py: rollY.slice(base, base + HORIZON) };
 }
 
@@ -4023,6 +4062,25 @@ function sanitize(action) {
 
 
 return { update: decide };
+}
+
+
+// A source-derived model's imminent trigger is a prediction, never an actual
+// opponent command. Retain all normal threats; add a shot only when the model
+// has recently predicted the public motion closely. Long trajectory forecasts
+// are deliberately not substituted into the ordinary enemy predictors.
+function addModeledShot(state) {
+  const prediction = modeledOpponent;
+  if (!prediction || !prediction.fire || prediction.confidence < 0.7) return;
+  const enemy = state.enemies.find(e => e.id === prediction.id);
+  if (enemy.laserShots > 0) return;
+  const pellets = enemy.scatterShots > 0 ? P.scatter.pellets : 1;
+  for (let pellet = 0; pellet < pellets && threatCount < MAX_THREATS; pellet++) {
+    const angle = prediction.firingAngle + (pellet - (pellets - 1) / 2) * P.scatter.spreadAngle;
+    addRealBullet({ x: prediction.firingX, y: prediction.firingY,
+      vx: Math.cos(angle) * P.bulletSpeed, vy: Math.sin(angle) * P.bulletSpeed,
+      age: 0, bounces: 0, ownerId: enemy.id }, state.self);
+  }
 }
 
 module.exports = { update: decide };
