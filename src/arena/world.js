@@ -3,15 +3,17 @@ import { generateMaze, destroyWallsInRadius, destroyWallSegments } from '../maze
 import { Tank } from '../tank.js';
 import { PowerupSpawner } from '../powerup.js';
 import { castLaserPath } from '../laser.js';
-import { circleVsCircle, separateCircles, resolveCircleWalls, closestPointOnSegment } from '../collision.js';
+import { circleVsCircle, closestPointOnSegment } from '../collision.js';
+import { TankMotion } from '../tank-motion.js';
+import { createRng, deriveSeed } from '../rng.js';
 import { CELL_SIZE, TANK, BULLET, POWERUP, MAZE_TIERS } from '../config.js';
 
 export const DT = 1 / 60;
-const pick = list => list[Math.floor(Math.random() * list.length)];
-function shuffled(list) {
+const pick = (list, rng) => list[Math.floor(rng() * list.length)];
+function shuffled(list, rng) {
   const copy = [...list];
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
@@ -20,33 +22,44 @@ function shuffled(list) {
 export class ArenaWorld {
   constructor(entrants, options) {
     this.options = options;
+    // 主种子只抽一次，其余随机行为均使用各自的独立流。
+    this.seed = options.seed === undefined ? Math.floor(Math.random() * 0x100000000) : options.seed >>> 0;
+    this.seeds = {
+      mapSeed: deriveSeed(this.seed, 'map'), spawnSeed: deriveSeed(this.seed, 'spawn'),
+      orderSeed: deriveSeed(this.seed, 'order'), powerupSeed: deriveSeed(this.seed, 'powerup'),
+    };
+    const mapRng = createRng(this.seeds.mapSeed);
+    const spawnRng = createRng(this.seeds.spawnSeed);
+    const orderRng = createRng(this.seeds.orderSeed);
+    const powerupRng = createRng(this.seeds.powerupSeed);
     // 以双人 7×5 格为基准，长宽随人数的平方根增长，面积随人数增长。
     const scale = Math.sqrt(entrants.length / 2);
     const cols = Math.ceil(MAZE_TIERS.small.cols * scale);
     const rows = Math.ceil(MAZE_TIERS.small.rows * scale);
-    this.style = options.mapStyle || pick(['sparse', 'symmetric', 'rooms']);
-    this.maze = generateMaze(cols, rows, this.style);
+    this.style = options.mapStyle || pick(['sparse', 'symmetric', 'rooms'], mapRng);
+    this.maze = generateMaze(cols, rows, this.style, mapRng);
     // 隔一格安排一个候选出生位；此地图尺寸下候选数足够容纳全部参赛者。
     // 每局随机栅格偏移、位置分配及内部结算次序，出生点间距至少两格。
     const spawnCells = [];
-    const startColumn = Math.floor(Math.random() * 2);
-    const startRow = Math.floor(Math.random() * 2);
+    const startColumn = Math.floor(spawnRng() * 2);
+    const startRow = Math.floor(spawnRng() * 2);
     for (let r = startRow; r < rows; r += 2) {
       for (let c = startColumn; c < cols; c += 2) {
         spawnCells.push({ x: (c + 0.5) * CELL_SIZE, y: (r + 0.5) * CELL_SIZE });
       }
     }
-    const spots = shuffled(spawnCells);
-    this.actors = shuffled(entrants).map((p, i) => ({
+    const spots = shuffled(spawnCells, spawnRng);
+    this.actors = shuffled(entrants.map((p, i) => ({
       id: p.id, name: p.name, color: p.color,
-      tank: new Tank(spots[i].x, spots[i].y, Math.random() * Math.PI * 2, p.color),
+      tank: new Tank(spots[i].x, spots[i].y, spawnRng() * Math.PI * 2, p.color),
       vx: 0, vy: 0, kills: 0,
-    }));
+    })), orderRng);
+    this.motion = new TankMotion();
     this.tick = 0;
     this.bullets = [];
     this.powerups = [];
     this.mines = [];
-    this.spawner = new PowerupSpawner(options.powerups ? [...POWERUP.types] : []);
+    this.spawner = new PowerupSpawner(options.powerups ? [...POWERUP.types] : [], powerupRng);
     this.events = [];
     this.result = null;
     this.nextEntityId = 1;
@@ -59,6 +72,8 @@ export class ArenaWorld {
   }
 
   get alive() { return this.actors.filter(p => p.tank.alive); }
+
+  botSeedFor(id) { return deriveSeed(this.seed, `bot:${id}`); }
 
   ownerId(tank) { return this.actors.find(p => p.tank === tank)?.id ?? null; }
   powerupId(powerup) {
@@ -139,20 +154,13 @@ export class ArenaWorld {
     const before = this.actors.map(p => ({ x: p.tank.x, y: p.tank.y }));
     for (const p of this.actors) {
       const shield = p.tank.shield, mineCharges = p.tank.mineCharges;
-      p.tank.update(DT, this.maze.walls, actions[p.id]);
+      p.tank.update(DT, this.maze.walls, actions[p.id], true);
       if (shield && !p.tank.shield) this.record({ type: 'powerup_expired', actorId: p.id, powerup: 'shield' });
       if (mineCharges > 0 && !p.tank.mineCharges) this.record({ type: 'powerup_expired', actorId: p.id, powerup: 'mine', charges: mineCharges });
     }
+    this.motion.step(this.actors.map(p => p.tank), DT, this.maze.walls,
+      this.actors.map(p => actions[p.id]));
     const tanks = this.alive.map(p => p.tank);
-    for (let i = 0; i < tanks.length; i++) {
-      for (let j = i + 1; j < tanks.length; j++) {
-        const a = tanks[i], b = tanks[j];
-        const sep = separateCircles(a.x, a.y, b.x, b.y, TANK.radius * 2);
-        if (!sep) continue;
-        Object.assign(a, resolveCircleWalls(sep.ax, sep.ay, TANK.radius, this.maze.walls));
-        Object.assign(b, resolveCircleWalls(sep.bx, sep.by, TANK.radius, this.maze.walls));
-      }
-    }
     this.actors.forEach((p, i) => {
       p.vx = (p.tank.x - before[i].x) / DT;
       p.vy = (p.tank.y - before[i].y) / DT;

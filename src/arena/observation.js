@@ -1,8 +1,11 @@
-import { TANK, BULLET, POWERUP, WALL } from '../config.js';
+import { TANK, TANK_COLLISION, BULLET, POWERUP, WALL } from '../config.js';
 import { DT } from './world.js';
 
 export const PUBLIC_PHYSICS = {
-  tankRadius: TANK.radius, moveSpeed: TANK.moveSpeed, turnSpeed: TANK.turnSpeed,
+  // tankRadius 继续用于武器命中/道具拾取；运动接触使用下方车身与炮管轮廓。
+  tankRadius: TANK.radius, moveSpeed: TANK.moveSpeed, reverseSpeed: TANK.reverseSpeed, turnSpeed: TANK.turnSpeed,
+  tankCollision: { ...TANK_COLLISION },
+  wallThickness: WALL.thickness, borderWallThickness: WALL.borderThickness,
   bulletRadius: BULLET.radius, bulletSpeed: BULLET.speed, bulletLifetime: BULLET.lifetime,
   fireCooldown: BULLET.cooldown, maxBullets: BULLET.maxAlive, selfHitGrace: BULLET.selfHitGrace,
   wallHp: WALL.hp,

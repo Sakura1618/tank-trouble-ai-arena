@@ -1,5 +1,6 @@
 import { ChallengeGame } from './runtime.js';
 import { HumanControls } from './controls.js';
+import { ReplayPanel, downloadRecording } from './replay-panel.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE = 'tank-trouble-web-challenge-v1';
@@ -31,6 +32,7 @@ function save() {
   try { localStorage.setItem(STORAGE, JSON.stringify({ settings, stats })); }
   catch { if (storageAvailable) notice('浏览器未允许保存本地数据，本次游戏仍可继续；关闭页面后战绩不会保留。', true); storageAvailable = false; }
 }
+const replayPanel = new ReplayPanel({ notice });
 function collectSettings() {
   settings = { mode, name: $('human-name').value.trim() || '挑战者', color: $('human-color').value,
     map: $('map').value, timeout: Number($('timeout').value), powerups: $('powerups').checked,
@@ -160,11 +162,13 @@ function showResult(result) {
   $('result-title').textContent = human ? winner?.id === human.id ? '胜利' : winner ? '失败' : '平局' : winner ? `${winner.name} 获胜` : '本局无胜者';
   const reason = { timeout: '达到单局时限', mutual: '全部坦克阵亡', all_forfeit: '全部 AI 故障判负', survivor: '最后一辆坦克存活' }[result.reason];
   const opponents = game.players.filter(p => p.kind === 'ai').map(p => p.name).join('、');
-  $('result-summary').textContent = `${human ? `对手：${opponents}。` : ''}历时 ${(result.ticks / 60).toFixed(1)} 秒 · ${reason}`;
+  $('result-summary').textContent = `${human ? `对手：${opponents}。` : ''}历时 ${(result.ticks / 60).toFixed(1)} 秒 · ${reason} · 种子 ${game.world.seed}`;
   $('result-details').replaceChildren(...result.players.map(resultPlayer => {
     const player = game.players.find(p => p.id === resultPlayer.id);
     return node('p', `${player.name} · ${resultPlayer.kills} 击杀${resultPlayer.forfeit ? ` · 故障判负：${resultPlayer.forfeit.message}` : ''}`);
   }));
+  $('view-replay').disabled = !game.recording?.states?.length;
+  $('download-recording').disabled = !game.recording;
   $('result-dialog').showModal();
 }
 const game = new ChallengeGame({
@@ -207,10 +211,11 @@ function togglePause() {
 function touchLayout() {
   $('battle').classList.toggle('touch-enabled', $('touch-setting').checked && game.players.some(p => p.kind === 'human'));
 }
-async function startMatch(repeat = false) {
+async function startMatch(repeat = false, sameSeed = false) {
   if (starting) return;
   collectSettings();
   let players, rules;
+  const seed = sameSeed ? lastMatch?.seed : undefined;
   if (repeat && lastMatch) ({ players, rules } = lastMatch);
   else {
     const selected = seats.filter(p => p.enabled);
@@ -225,7 +230,11 @@ async function startMatch(repeat = false) {
   $('lobby').hidden = true; $('battle').hidden = false; document.body.classList.add('playing');
   $('battle-mode').textContent = players.some(p => p.kind === 'human') ? 'HUMAN vs AI' : 'AI vs AI';
   hudSignature = ''; lastMatch = { players, rules }; controls.reset();
-  try { const started = game.start({ players, rules }); touchLayout(); await started; $('battle-canvas').focus({ preventScroll: true }); }
+  try {
+    const started = game.start({ players, rules, seed });
+    lastMatch.seed = game.world.seed;
+    touchLayout(); await started; $('battle-canvas').focus({ preventScroll: true });
+  }
   catch (error) { game.stop(); notice(`无法开始对局：${error.message}`, true); }
   finally { starting = false; }
 }
@@ -269,6 +278,10 @@ $('file-input').onchange = e => importFiles([...e.target.files]);
 $('file-input').oncancel = () => { importTarget = null; };
 $('pause').onclick = togglePause; $('resume').onclick = togglePause;
 $('restart').onclick = () => startMatch(true); $('again').onclick = () => startMatch(true);
+$('same-seed').onclick = () => startMatch(true, true);
+$('view-replay').onclick = () => replayPanel.open(game.recording);
+$('download-recording').onclick = () => downloadRecording(game.recording);
+$('open-recording').onclick = () => replayPanel.openFile();
 $('return').onclick = returnToLobby; $('change-opponent').onclick = returnToLobby;
 $('result-dialog').addEventListener('cancel', () => returnToLobby());
 $('fullscreen').onclick = async () => {

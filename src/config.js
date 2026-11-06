@@ -86,10 +86,11 @@ export const STYLE_POOL_BY_MODE = {
 // 坐标约定：车体朝向 +x（炮管指向右），渲染时已 rotate 到 angle。
 //   长(length) = 沿炮管方向(x)的尺寸；宽(width) = 垂直方向(y)的尺寸。
 export const TANK = {
-  radius: 16,            // 车体碰撞半径
+  radius: 16,            // 武器命中/拾取半径；运动接触使用下方画面轮廓
 
-  moveSpeed: 120,        // 像素/秒
-  turnSpeed: 3.0,        // 弧度/秒
+  moveSpeed: CELL_SIZE * 1.595,    // 前进153.12px/s，原版1.595格/s
+  reverseSpeed: CELL_SIZE * 1.28,  // 倒车122.88px/s，原版1.28格/s
+  turnSpeed: 5.0,                 // 弧度/秒；连续输入直接缩放，无驾驶惯性
 
   // 车体（中间的彩色方块）
   bodyLength: 26,        // 沿炮管方向
@@ -106,6 +107,15 @@ export const TANK = {
   // 炮管（从炮塔伸出的圆头短管）
   barrelLength: 18,      // 从炮塔中心向前伸出的长度
   barrelWidth: 5,        // 炮管粗细
+};
+
+// 运动接触轮廓跟随现有美术：含履带车身、圆头炮管；武器命中圆不变。
+export const TANK_COLLISION = {
+  bodyLength: TANK.treadLength,
+  bodyWidth: TANK.bodyWidth + 2 * (TANK.treadWidth - TANK.treadInset),
+  barrelStart: 0,
+  barrelEnd: TANK.turretRadius + TANK.barrelLength,
+  barrelRadius: TANK.barrelWidth / 2,
 };
 
 // 子弹参数

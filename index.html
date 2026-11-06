@@ -8,6 +8,7 @@
   <title>Tank Trouble · 真人挑战 AI</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./web-challenge/style.css">
+  <link rel="stylesheet" href="./web-challenge/replay-panel.css">
   <script type="module" src="./web-challenge/app.js"></script>
 </head>
 <body>
@@ -17,7 +18,7 @@
       <h1>坦克动荡</h1>
       <p class="hero-subtitle">真人挑战与 AI 对战</p>
       <div class="hero-actions"><button id="quick-start" class="primary">开始挑战 <span>↗</span></button><button id="watch-mode" class="secondary">AI 对战观战</button><button id="import-top" class="text-button">＋ 导入 AI</button></div>
-      <div class="tool-downloads"><a class="secondary download-link" href="./AI_Starter_Kit.zip" download="AI_Starter_Kit.zip">↓ AI 开发包</a><a class="secondary download-link" href="https://github.com/Walkersifolia/tank-trouble-ai-arena/releases/latest/download/AI_Training_Arena_Windows_x64.zip" download="AI_Training_Arena_Windows_x64.zip">↓ 本地黑盒训练场 <small>Windows x64 · 102.6 MB</small></a></div>
+      <div class="tool-downloads"><a class="secondary download-link" href="./AI_Starter_Kit.zip" download="AI_Starter_Kit.zip">↓ AI 开发包</a><a class="secondary download-link" href="https://github.com/Walkersifolia/tank-trouble-ai-arena/releases/latest/download/AI_Training_Arena_Windows_x64.zip" download="AI_Training_Arena_Windows_x64.zip">↓ 本地黑盒训练场 <small>Windows x64 · 102.7 MB</small></a><button id="open-recording" class="text-button">打开录像</button></div>
       </div>
       <img class="arena-art" src="./web-challenge/arena.svg" alt="坦克发射的激光经墙壁反射，击中另一辆正在爆炸的坦克" width="800" height="480">
     </section>
@@ -60,7 +61,7 @@
     <div class="battle-footer"><span id="weapon-status">普通炮弹</span><span id="performance-status">60 Hz 物理 · 本地运行</span><span class="keyboard-hint">WASD 移动转向 · Space 开火 · Shift 布雷</span></div>
     <div class="rotate-hint"><span>↻</span><b>请横屏使用</b><p>请旋转手机，必要时关闭系统方向锁定。</p></div>
   </section>
-  <dialog id="result-dialog"><h2 id="result-title"></h2><p id="result-summary"></p><div id="result-details"></div><div class="dialog-actions"><button id="again" class="primary">再来一局</button><button id="change-opponent" class="secondary">更换对手</button></div></dialog>
+  <dialog id="result-dialog"><h2 id="result-title"></h2><p id="result-summary"></p><div id="result-details"></div><div class="dialog-actions"><button id="again" class="primary">换图再来</button><button id="same-seed" class="secondary">同种子重赛</button><button id="change-opponent" class="secondary">更换对手</button></div><div class="dialog-actions result-tools"><button id="view-replay" class="text-button">回放与诊断</button><button id="download-recording" class="text-button">下载录像</button></div><p class="hint">同种子重赛复用地图、出生和随机序列；真人操作、AI 限时搜索与超时可能改变结果。回放展示已记录的实际对局。</p></dialog>
   <div id="notice" role="status" hidden></div>
 </body>
 </html>

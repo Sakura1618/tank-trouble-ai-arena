@@ -13,8 +13,8 @@ import { POWERUP, THEME, CELL_SIZE, TANK } from "./config.js";
 import { resolveCircleWalls } from "./collision.js";
 
 // [min, max] 区间取随机数（刷新间隔抖动用）
-function randRange([min, max]) {
-  return min + Math.random() * (max - min);
+function randRange([min, max], rng) {
+  return min + rng() * (max - min);
 }
 
 // 道具类型 → 圆底颜色。**这是全游戏唯一的道具色表**（新增类型在此登记一行即可）：
@@ -167,9 +167,11 @@ function drawLaserIcon(ctx, r) {
 
 export class PowerupSpawner {
   // types: 本局可刷的种类数组（菜单关掉道具则传 []，永不刷）
-  constructor(types) {
+  // rng: 本实例独立的 [0,1) 随机函数；省略时仍使用 Math.random。
+  constructor(types, rng = Math.random) {
     this.types = types || [];
-    this.timer = randRange(POWERUP.spawnInterval); // 开局先等一拍再刷第一个
+    this.rng = rng;
+    this.timer = randRange(POWERUP.spawnInterval, this.rng); // 开局先等一拍再刷第一个
     // 场上道具上限。默认 = POWERUP.maxOnField（原行为）；波次生存的「补给增量」
     // 强化会把它调高——**必须调这里**，不然多刷的补给会被下面两道门静默吃掉，
     // 那张卡就是一张空卡（场上已有 2 个没捡的道具时 forceSpawn 直接 false）。
@@ -186,7 +188,7 @@ export class PowerupSpawner {
 
     this.timer -= dt;
     if (this.timer > 0) return;
-    this.timer = randRange(POWERUP.spawnInterval); // 重置下一次刷新计时
+    this.timer = randRange(POWERUP.spawnInterval, this.rng); // 重置下一次刷新计时
 
     this.forceSpawn(maze, powerups, tanks, mines);
   }
@@ -201,7 +203,7 @@ export class PowerupSpawner {
     const spot = this.pickSpot(maze, powerups, tanks, mines);
     if (!spot) return false; // 没找到合适位置
 
-    const type = this.types[Math.floor(Math.random() * this.types.length)];
+    const type = this.types[Math.floor(this.rng() * this.types.length)];
     powerups.push(new Powerup(spot.x, spot.y, type));
     return true;
   }
@@ -217,8 +219,8 @@ export class PowerupSpawner {
   // 所以只要格心离雷 ≥ triggerRadius + POWERUP.radius，走过去时就不会踩进触发圈。
   pickSpot(maze, powerups, tanks, mines = []) {
     for (let tries = 0; tries < 12; tries++) {
-      const c = Math.floor(Math.random() * maze.cols);
-      const r = Math.floor(Math.random() * maze.rows);
+      const c = Math.floor(this.rng() * maze.cols);
+      const r = Math.floor(this.rng() * maze.rows);
       let x = (c + 0.5) * CELL_SIZE;
       let y = (r + 0.5) * CELL_SIZE;
       // 格中心理论上不会嵌墙，但稀疏格栅偶有贴边，兜一下保险

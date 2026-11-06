@@ -10,6 +10,7 @@ import { resolveCircleWalls, segmentVsSegmentParam } from "./collision.js";
 import { Bullet } from "./bullet.js";
 import { Mine } from "./mine.js";
 import { neutralMods } from "./upgrades.js";
+import { moveTank } from "./tank-motion.js";
 
 export class Tank {
   // x, y: 车体中心世界坐标（像素）
@@ -41,8 +42,9 @@ export class Tank {
   }
 
   // dt: 距上一帧的秒数；walls: 墙线段数组，用于撞墙不穿
-  // controls: 本帧控制指令 { turn: -1|0|1, move: -1|0|1 }（fire 走 tryFire）
-  update(dt, walls, controls) {
+  // controls: 本帧连续指令 { turn: [-1,1], move: [-1,1] }（fire 走 tryFire）
+  // 多车世界先更新计时，再统一 TankMotion.step，避免逐车推进同一个物理世界。
+  update(dt, walls, controls, deferMotion = false) {
     if (!this.alive) return;
 
     // 开炮冷却递减
@@ -67,22 +69,7 @@ export class Tank {
       }
     }
 
-    // 转向：原地转（mods.turn 中性 1）
-    this.angle += controls.turn * TANK.turnSpeed * (this.mods?.turn ?? 1) * dt;
-
-    // 前进/后退：沿朝向移动（mods.speed 中性 1）
-    if (controls.move !== 0) {
-      const dist = controls.move * TANK.moveSpeed * (this.mods?.speed ?? 1) * dt;
-      this.x += Math.cos(this.angle) * dist;
-      this.y += Math.sin(this.angle) * dist;
-    }
-
-    // 撞墙解算：把车体(圆)推出所有相交的墙，实现撞墙不穿 + 沿墙滑动
-    if (walls && walls.length) {
-      const fixed = resolveCircleWalls(this.x, this.y, TANK.radius, walls);
-      this.x = fixed.x;
-      this.y = fixed.y;
-    }
+    if (!deferMotion) moveTank(this, dt, walls, controls);
   }
 
   // 尝试开炮：wantFire 为 true + 冷却就绪 + 同屏己方子弹未达上限时，
@@ -251,12 +238,13 @@ export class Tank {
     }
   }
 
-  render(ctx) {
+  // pose 只供绘制；碰撞、命中和 AI 始终读取真实 x/y/angle。
+  render(ctx, pose = this) {
     if (!this.alive) return;
 
     ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.angle);
+    ctx.translate(pose.x, pose.y);
+    ctx.rotate(pose.angle);
 
     const {
       bodyLength, bodyWidth,
@@ -329,7 +317,7 @@ export class Tank {
       const blink = this.shieldTimer < POWERUP.shield.blinkUnder
         ? 0.4 + 0.4 * Math.abs(Math.sin(this.shieldTimer * 8)) : 0.8;
       ctx.save();
-      ctx.translate(this.x, this.y);
+      ctx.translate(pose.x, pose.y);
       ctx.globalAlpha = blink;
       ctx.strokeStyle = THEME.shieldRing;
       ctx.lineWidth = 2.5;

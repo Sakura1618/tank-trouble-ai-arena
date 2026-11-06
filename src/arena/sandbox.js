@@ -4,7 +4,7 @@ export const LIMITS = { decisionMs: 50, replyMs: 250, initMs: 2000, queueMs: 200
 export const IDLE = Object.freeze({ move: 0, turn: 0, fire: false, special: false });
 
 // 只在不透明来源的 iframe 所创建的 Web Worker 内运行。
-function workerMain() {
+function workerMain(createRng) {
   const send = globalThis.postMessage.bind(globalThis);
   const now = performance.now.bind(performance);
   const compile = Function;
@@ -26,7 +26,13 @@ function workerMain() {
     send({ phase: 'started' });
     let start;
     try {
-      if (data.type === 'init') { source = data.source; budget = data.budget; reset(); send({ ok: true }); }
+      if (data.type === 'init') {
+        source = data.source;
+        budget = data.budget;
+        if (data.seed !== undefined) Math.random = createRng(data.seed);
+        reset();
+        send({ ok: true });
+      }
       else {
         start = now();
         const action = update(data.state);
@@ -82,7 +88,10 @@ export class BotSandbox {
     this.entrant = entrant;
   }
 
-  async start() {
+  // 仅固定 Math.random；保留真实 Date / performance 和原有决策计时。
+  // 省略 seed 的旧调用保持原生随机；reset() 沿用本实例之前传入的种子。
+  async start(seed = this.seed) {
+    this.seed = seed;
     this.frame = document.createElement('iframe');
     this.frame.hidden = true;
     this.frame.setAttribute('sandbox', 'allow-scripts');
@@ -92,10 +101,10 @@ export class BotSandbox {
     this.port = channel.port1;
     this.port.onmessage = ({ data }) => this.receive(data);
     const ready = this.waitForReply(LIMITS.initMs, 'connect');
-    this.frame.onload = () => this.frame.contentWindow.postMessage({ worker: `(${workerMain.toString()})()` }, '*', [channel.port2]);
+    this.frame.onload = () => this.frame.contentWindow.postMessage({ worker: `(${workerMain.toString()})(${createRng.toString()})` }, '*', [channel.port2]);
     document.body.append(this.frame);
     await ready;
-    await this.request({ type: 'init', source: this.entrant.source, budget: LIMITS.decisionMs }, LIMITS.initMs);
+    await this.request({ type: 'init', source: this.entrant.source, seed: this.seed, budget: LIMITS.decisionMs }, LIMITS.initMs);
   }
 
   receive(data) {
@@ -147,7 +156,7 @@ export class BotSandbox {
     this.port.postMessage(message);
     return reply;
   }
-  async reset() { this.dispose(); await this.start(); }
+  async reset(seed = this.seed) { this.dispose(); await this.start(seed); }
   async decide(state) { return validateAction((await this.request({ type: 'tick', state })).action); }
   dispose() {
     if (this.pending) {
@@ -160,3 +169,5 @@ export class BotSandbox {
     this.frame?.remove();
   }
 }
+import { createRng } from '../rng.js';
+

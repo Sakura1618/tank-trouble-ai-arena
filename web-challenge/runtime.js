@@ -2,6 +2,7 @@ import { ArenaWorld, DT } from '../src/arena/world.js';
 import { observe } from '../src/arena/observation.js';
 import { BotSandbox, IDLE } from '../src/arena/sandbox.js';
 import { ArenaRenderer } from '../src/arena/render.js';
+import { MatchRecording } from '../src/arena/recording.js';
 
 // 与桌面竞技场共用世界、观察和隔离执行器；本模块只协调浏览器时间与真人输入。
 export class ChallengeGame {
@@ -23,7 +24,7 @@ export class ChallengeGame {
     this.onUpdate({ world: this.world, status, simRate: this.simRate });
   }
 
-  async start({ players, rules }) {
+  async start({ players, rules, seed }) {
     this.stop();
     const session = this.session;
     this.players = players;
@@ -31,15 +32,21 @@ export class ChallengeGame {
     this.humanAction = { ...IDLE };
     this.simRate = 1;
     this.slowDevice = false;
+    this.recording = null;
     this.world = new ArenaWorld(players, {
       timeout: rules.timeout, powerups: rules.powerups, wallBreak: rules.wallBreak,
-      mapStyle: rules.map === 'random' ? undefined : rules.map, recording: false,
+      mapStyle: rules.map === 'random' ? undefined : rules.map, recording: true, seed,
+    });
+    const recordingId = crypto.randomUUID();
+    this.recorder = new MatchRecording(this.world, {
+      id: recordingId, sessionId: recordingId, round: 1, entrants: players, detail: true,
     });
     this.bots = players.filter(p => p.kind === 'ai').map(p => new BotSandbox(p));
     const world = this.world, bots = this.bots;
     this.update('loading');
     this.render(session);
-    const initialized = await Promise.all(bots.map(bot => this.call(bot, () => bot.start())));
+    const initialized = await Promise.all(bots.map(bot => this.call(bot,
+      () => bot.start(world.botSeedFor(bot.entrant.id)))));
     if (session !== this.session) return;
     this.applyFaults(initialized);
     if (world.result) { this.finish(); return; }
@@ -90,6 +97,9 @@ export class ChallengeGame {
     }
     // 所有本 Tick 故障先一起处理，胜负不依赖 Worker 消息到达顺序。
     this.world.settle();
+    if (replies.some(reply => reply.fault)) {
+      this.recorder.capture(this.world, {}, replies.filter(reply => reply.fault));
+    }
   }
 
   resetPacing() {
@@ -122,6 +132,7 @@ export class ChallengeGame {
       if (replies.some(reply => reply.fault)) this.applyFaults(replies);
       if (world.result) break;
       world.step(actions);
+      this.recorder.capture(world, actions);
       this.renderer.consume(world, false);
 
       const now = performance.now();
@@ -148,11 +159,14 @@ export class ChallengeGame {
 
   render(session) {
     let previousTick = this.world.tick;
-    const draw = () => {
+    let previousFrame = performance.now();
+    const draw = now => {
       if (session !== this.session) return;
       const elapsed = (this.world.tick - previousTick) * DT;
+      const renderDt = (now - previousFrame) / 1000;
       previousTick = this.world.tick;
-      this.renderer.draw(this.world, elapsed, this.status !== 'running');
+      previousFrame = now;
+      this.renderer.draw(this.world, elapsed, this.status !== 'running', renderDt);
       this.frame = requestAnimationFrame(draw);
     };
     this.frame = requestAnimationFrame(draw);
@@ -161,6 +175,8 @@ export class ChallengeGame {
   finish() {
     this.bots.forEach(bot => bot.dispose());
     this.humanAction = { ...IDLE };
+    this.recording = this.recorder.finish(this.world);
+    this.recorder = null;
     this.update('finished');
     this.onEnd(this.world.result);
   }
@@ -180,6 +196,10 @@ export class ChallengeGame {
 
   stop() {
     this.session++;
+    if (this.recorder) {
+      this.recording = this.recorder.finish(this.world, { aborted: true });
+      this.recorder = null;
+    }
     this.humanAction = { ...IDLE };
     this.bots.forEach(bot => bot.dispose());
     this.bots = [];

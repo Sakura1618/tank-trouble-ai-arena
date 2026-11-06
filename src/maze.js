@@ -30,19 +30,20 @@ export const DIRS = [
 // cells[r][c] = { top, right, bottom, left }，true 表示该面有墙
 // walls = 去重后的线段数组 [{x1,y1,x2,y2}, ...]，世界坐标
 // style: MAZE_STYLES 键（sparse/symmetric/rooms），默认 sparse 向后兼容
+// rng: 可选的 [0,1) 随机函数；不传时保持原有 Math.random 行为。
 //
 // 退化护栏（阶段 28.1）：放墙是概率的、连通修复与对称补齐又只删不加，所以尾巴上能抽出
 // 「几乎没有内墙」的图（symmetric×small 实测 0.069% 落在 MAZE_FLOOR.minDensity 以下，
 // 其中 3/10万 是一堵内墙都没有的空箱子）。低于下限就重抽，理由与取值见 config 的
 // MAZE_FLOOR 注释。重抽走的是同一条完整流程，故其余不变量（双向一致/全连通/出生互达/
 // 外框完整/hp 继承/对称镜像）逐条原样成立。
-export function generateMaze(cols, rows, style = "sparse") {
+export function generateMaze(cols, rows, style = "sparse", rng = Math.random) {
   const innerEdges = rows * (cols - 1) + cols * (rows - 1);
   const floor = innerEdges * MAZE_FLOOR.minDensity;
-  let maze = buildMaze(cols, rows, style);
+  let maze = buildMaze(cols, rows, style, rng);
   // 抽满 tries 次仍不达标就交付手上这张：地图必须有，宁空旷勿无图（实际概率 ≈1e-38）
   for (let i = 1; i < MAZE_FLOOR.tries && innerWallCount(maze.walls) < floor; i++) {
-    maze = buildMaze(cols, rows, style);
+    maze = buildMaze(cols, rows, style, rng);
   }
   return maze;
 }
@@ -50,7 +51,7 @@ export function generateMaze(cols, rows, style = "sparse") {
 const innerWallCount = (walls) => walls.reduce((n, w) => n + (w.border ? 0 : 1), 0);
 
 // 单次生成（无退化护栏）：generateMaze 的一趟，失败时由它重试
-function buildMaze(cols, rows, style) {
+function buildMaze(cols, rows, style, rng) {
   // --- 1) 全开放起步，仅封闭外边界（风格无关的共同起点）---
   const cells = [];
   for (let r = 0; r < rows; r++) {
@@ -68,11 +69,11 @@ function buildMaze(cols, rows, style) {
 
   // --- 2) 按风格放内墙（都只写 cells，成对写共享墙两面）---
   if (style === "symmetric") {
-    fillSymmetric(cells, cols, rows);
+    fillSymmetric(cells, cols, rows, rng);
   } else if (style === "rooms") {
-    fillRooms(cells, cols, rows);
+    fillRooms(cells, cols, rows, rng);
   } else {
-    fillSparse(cells, cols, rows);
+    fillSparse(cells, cols, rows, rng);
   }
 
   // --- 3) 连通性修复（风格无关兜底）---
@@ -89,14 +90,14 @@ function buildMaze(cols, rows, style) {
 }
 
 // —— 风格 1：稀疏格栅（原版风，独立随机每条内部边）——
-function fillSparse(cells, cols, rows) {
+function fillSparse(cells, cols, rows, rng) {
   // 密度从风格表读（与 symmetric 同一个来源），不直读顶层 WALL_DENSITY——
   // 那样会让 MAZE_STYLES.sparse.density 变成改了没反应的死旋钮
   const density = MAZE_STYLES.sparse.density;
   // 垂直内墙：格 (c,r) 的 right ↔ 格 (c+1,r) 的 left
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols - 1; c++) {
-      if (Math.random() < density) {
+      if (rng() < density) {
         cells[r][c].right = true;
         cells[r][c + 1].left = true;
       }
@@ -105,7 +106,7 @@ function fillSparse(cells, cols, rows) {
   // 水平内墙：格 (c,r) 的 bottom ↔ 格 (c,r+1) 的 top
   for (let r = 0; r < rows - 1; r++) {
     for (let c = 0; c < cols; c++) {
-      if (Math.random() < density) {
+      if (rng() < density) {
         cells[r][c].bottom = true;
         cells[r + 1][c].top = true;
       }
@@ -117,7 +118,7 @@ function fillSparse(cells, cols, rows) {
 // 镜像映射：竖边 (c,r)（即格(c,r)右边）→ 竖边 (cols-2-c, rows-1-r)；
 //           横边 (c,r)（即格(c,r)下边）→ 横边 (cols-1-c, rows-2-r)。
 // 自映射的中心边只随机一次自然成立（放=两次幂等）。
-function fillSymmetric(cells, cols, rows) {
+function fillSymmetric(cells, cols, rows, rng) {
   const density = MAZE_STYLES.symmetric.density;
   const putV = (c, r) => { cells[r][c].right = true; cells[r][c + 1].left = true; };
   const putH = (c, r) => { cells[r][c].bottom = true; cells[r + 1][c].top = true; };
@@ -127,14 +128,14 @@ function fillSymmetric(cells, cols, rows) {
       const mc = cols - 2 - c, mr = rows - 1 - r;
       // 只处理「前半」代表边（字典序 ≤ 镜像），避免每对被抽两次密度翻倍
       if (r > mr || (r === mr && c > mc)) continue;
-      if (Math.random() < density) { putV(c, r); putV(mc, mr); }
+      if (rng() < density) { putV(c, r); putV(mc, mr); }
     }
   }
   for (let r = 0; r < rows - 1; r++) {
     for (let c = 0; c < cols; c++) {
       const mc = cols - 1 - c, mr = rows - 2 - r;
       if (r > mr || (r === mr && c > mc)) continue;
-      if (Math.random() < density) { putH(c, r); putH(mc, mr); }
+      if (rng() < density) { putH(c, r); putH(mc, mr); }
     }
   }
 }
@@ -164,7 +165,7 @@ function enforceSymmetry(cells, cols, rows) {
 
 // —— 风格 3：房间 + 走廊（简化 BSP：递归二分到边长 ∈ [roomMin, roomMax]，
 // 切缝放满墙，相邻房间的公共缝开门）——
-function fillRooms(cells, cols, rows) {
+function fillRooms(cells, cols, rows, rng) {
   const { roomMin, roomMax, extraDoorChance } = MAZE_STYLES.rooms;
   const putV = (c, r) => { cells[r][c].right = true; cells[r][c + 1].left = true; };
   const putH = (c, r) => { cells[r][c].bottom = true; cells[r + 1][c].top = true; };
@@ -180,13 +181,13 @@ function fillRooms(cells, cols, rows) {
     if (w <= roomMax && h <= roomMax) { rooms.push(b); continue; }
     // 沿较长边切；切点保证两侧都 ≥ roomMin
     if (w >= h) {
-      const cut = b.c0 + roomMin - 1 + Math.floor(Math.random() * (w - 2 * roomMin + 1));
+      const cut = b.c0 + roomMin - 1 + Math.floor(rng() * (w - 2 * roomMin + 1));
       // 沿竖缝 cut|cut+1 放满墙
       for (let r = b.r0; r <= b.r1; r++) putV(cut, r);
       queue.push({ c0: b.c0, r0: b.r0, c1: cut, r1: b.r1 });
       queue.push({ c0: cut + 1, r0: b.r0, c1: b.c1, r1: b.r1 });
     } else {
-      const cut = b.r0 + roomMin - 1 + Math.floor(Math.random() * (h - 2 * roomMin + 1));
+      const cut = b.r0 + roomMin - 1 + Math.floor(rng() * (h - 2 * roomMin + 1));
       for (let c = b.c0; c <= b.c1; c++) putH(c, cut);
       queue.push({ c0: b.c0, r0: b.r0, c1: b.c1, r1: cut });
       queue.push({ c0: b.c0, r0: cut + 1, c1: b.c1, r1: b.r1 });
@@ -199,10 +200,10 @@ function fillRooms(cells, cols, rows) {
   const openDoors = (segs, cutFn) => {
     for (const seg of segs) {
       if (!seg.length) continue;
-      const first = seg[Math.floor(Math.random() * seg.length)];
+      const first = seg[Math.floor(rng() * seg.length)];
       cutFn(first.c, first.r);
-      if (seg.length >= 3 && Math.random() < extraDoorChance) {
-        const second = seg[Math.floor(Math.random() * seg.length)];
+      if (seg.length >= 3 && rng() < extraDoorChance) {
+        const second = seg[Math.floor(rng() * seg.length)];
         cutFn(second.c, second.r);
       }
     }
