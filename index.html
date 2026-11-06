@@ -30,7 +30,8 @@
         <div class="mode-switch" role="group" aria-label="游戏模式"><button id="human-mode" class="selected">真人 VS AI</button><button id="ai-mode">AI VS AI</button></div>
         <div id="human-settings" class="field-row"><label class="grow">你的名字<input id="human-name" maxlength="24" value="挑战者" autocomplete="nickname"></label><label>坦克颜色<input id="human-color" type="color" value="#43dfbd"></label></div>
         <div class="field-row"><label class="grow">地图<select id="map"><option value="random">随机迷宫 · 竞技场默认</option><option value="sparse">稀疏格栅</option><option value="symmetric">对称竞技场</option><option value="rooms">房间走廊</option></select></label><label class="grow">单局时限<select id="timeout"><option value="60">60 秒 · 默认</option><option value="120">120 秒</option><option value="180">180 秒</option><option value="300">300 秒</option></select></label></div>
-        <div class="check-row"><label><input type="checkbox" id="powerups" checked> 启用全部道具</label><label><input type="checkbox" id="wall-break" checked> 可破坏内墙</label><label><input type="checkbox" id="touch-setting"> 显示触控</label></div>
+        <div class="field-row"><label class="grow">玩法<select id="powerups"><option value="on">有道具对战</option><option value="off">纯走位开火 · 无道具</option></select></label></div>
+        <div class="check-row"><span class="hint">两种玩法均不破坏墙体</span><label><input type="checkbox" id="touch-setting"> 显示触控</label></div>
         <p class="hint">多名选手自由混战，真人最多一席。</p>
         <button id="start-match" class="primary full">进入战场 <span>→</span></button>
       </div>

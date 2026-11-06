@@ -35,8 +35,8 @@ function save() {
 const replayPanel = new ReplayPanel({ notice });
 function collectSettings() {
   settings = { mode, name: $('human-name').value.trim() || '挑战者', color: $('human-color').value,
-    map: $('map').value, timeout: Number($('timeout').value), powerups: $('powerups').checked,
-    wallBreak: $('wall-break').checked, touch: $('touch-setting').checked };
+    map: $('map').value, timeout: Number($('timeout').value), powerups: $('powerups').value === 'on',
+    wallBreak: false, touch: $('touch-setting').checked };
   save();
 }
 function node(tag, text, className) {
@@ -294,7 +294,7 @@ $('fullscreen').onclick = async () => {
 $('reset-records').onclick = () => {
   if (confirm('清除本浏览器的网页挑战战绩？此操作不可撤销，不影响桌面竞技场。')) { stats = emptyStats(); save(); renderStats(); }
 };
-for (const id of ['human-name', 'human-color', 'map', 'timeout', 'powerups', 'wall-break', 'touch-setting']) $(id).addEventListener('change', collectSettings);
+for (const id of ['human-name', 'human-color', 'map', 'timeout', 'powerups', 'touch-setting']) $(id).addEventListener('change', collectSettings);
 window.addEventListener('blur', () => game.pause());
 document.addEventListener('visibilitychange', () => { if (document.hidden) game.pause(); });
 window.addEventListener('pagehide', () => game.stop());
@@ -304,7 +304,7 @@ window.addEventListener('keydown', event => {
 
 $('human-name').value = settings.name || '挑战者'; $('human-color').value = settings.color || '#43dfbd';
 $('map').value = settings.map || 'random'; $('timeout').value = String(settings.timeout || 60);
-$('powerups').checked = settings.powerups ?? true; $('wall-break').checked = settings.wallBreak ?? true;
+$('powerups').value = settings.powerups === false ? 'off' : 'on';
 $('touch-setting').checked = settings.touch ?? matchMedia('(pointer:coarse)').matches;
 setMode(mode); renderStats();
 $('quick-start').disabled = true; $('start-match').disabled = true;
