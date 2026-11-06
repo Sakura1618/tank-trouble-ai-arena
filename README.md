@@ -24,7 +24,7 @@ Web 是唯一维护的游戏版本。真人挑战、多人 AI 混战、连续比
 
 Node.js 20+ 可运行无界面批量对战。使用与网页相同的 `ArenaWorld`、公开观测及 50 ms 决策预算，见 [PROTEUS 评测说明](research/proteus/README.md)。本地训练服务使用 `npm run training`，说明见 [training/README.md](training/README.md)。这些是策略开发工具，不是第二个游戏版本。
 
-神谕 ORACLE 的源码、模型、训练数据、导出、日志与状态只留在原本地目录，未纳入本仓库。其训练方案与运行进程保持原安排。DeepSeek Gen5「导师」保留为本地评测对照，通过评测命令显式指定路径。
+神谕 ORACLE 的源码、模型、训练数据、导出、日志与状态只留在原本地目录，未纳入本仓库。其训练方案与运行进程保持原安排。DeepSeek Gen5「导师」已获本轮公开授权，原版独立发布于 `bots/deepseek-g5-mentor.js`；其本地原文件保持不变。
 
 [网页操作与发布说明](web-challenge/README.md) · [无相策略、对战结果和限制](research/proteus/README.md)
 

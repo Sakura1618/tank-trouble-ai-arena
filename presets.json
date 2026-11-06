@@ -145,6 +145,16 @@
     "script": "./bots/deepseek-g4-apex.js"
   },
   {
+    "id": "deepseek-g5-mentor",
+    "name": "DeepSeek Gen5「导师」",
+    "codename": "MENTOR",
+    "color": "#ff9f43",
+    "description": "DeepSeek 第五代导师原版策略，本轮获授权公开。",
+    "group": "deepseek",
+    "order": 5,
+    "script": "./bots/deepseek-g5-mentor.js"
+  },
+  {
     "id": "opus-g1-prescience",
     "name": "Opus Gen1「先机」",
     "codename": "PRESCIENCE",
