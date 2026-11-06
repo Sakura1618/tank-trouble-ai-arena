@@ -8,7 +8,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 候选 core-5：以 core-1 为对照，新增移动中持续跟随公开预测轨迹的直射追瞄候选；原风险与价值网络择优。
+ * Gen4 候选 core-6：保留连续追瞄，以新弹更早命中或补齐现存弹道的退路覆盖评分，避免重复记账消耗弹位。
  *
  * MIT License
  * 
@@ -1810,30 +1810,35 @@ function chooseMotion(state, plan) {
 // 对手全部闪避动作里，有多少逃不过这一发（含场上已有的弹）。
 function caughtFraction(enemy, pellets, limit) {
   const hitR = tankR + P.bulletRadius, hit2 = hitR * hitR;
-  let caught = 0;
+  let caught = 0, open = 0;
   for (let m = 0; m < MANEUVERS.length; m++) {
     const move = MANEUVERS[m][0], turn = MANEUVERS[m][1], hold = MANEUVERS[m][2];
-    let hit = false;
+    let newHit = false, existingHit = false;
     sx = enemy.x;
     sy = enemy.y;
     sa = enemy.angle;
-    for (let k = 0; k < limit && !hit; k++) {
+    for (let k = 0; k < limit && !newHit && !existingHit; k++) {
       stepTank(move, k < hold ? turn : 0);
-      for (let p = 0; p < pellets && !hit; p++) {
+      for (let p = 0; p < pellets && !newHit; p++) {
         const dx = sx - shotX[p][k], dy = sy - shotY[p][k];
-        if (dx * dx + dy * dy < hit2) hit = true;
+        if (dx * dx + dy * dy < hit2) newHit = true;
       }
       if (k < HORIZON) {
-        for (let j = 0; j < threatCount && !hit; j++) {
+        for (let j = 0; j < threatCount && !existingHit; j++) {
           if (thVirtual[j] || thOwner[j] === enemy.id || k >= thTo[j]) continue;
           const dx = sx - thX[j][k], dy = sy - thY[j][k];
-          if (dx * dx + dy * dy < hit2) hit = true;
+          if (dx * dx + dy * dy < hit2) existingHit = true;
         }
       }
     }
-    if (hit) caught++;
+    // 若现存弹更早或同一步命中，原本这条路就已被封住；
+    // 新弹只争取剩余可逃路线，或把击杀时间提前，不能重复领取旧弹收益。
+    if (!existingHit) {
+      open++;
+      if (newHit) caught++;
+    }
   }
-  return caught / MANEUVERS.length;
+  return open > 0 ? caught / open : 0;
 }
 
 // 命中率 =（不躲时）预测轨迹是否被打中 与（会躲时）无处可逃比例 的加权，权重由闪避账本学习。
