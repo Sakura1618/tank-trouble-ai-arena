@@ -2080,6 +2080,7 @@ function decide(state) {
   predictEnemies(state, target);
   buildThreats(state);
   const plan = makePlan(state, target);
+  if (plan.kind !== 'path') mem.pathWaypoint = null;
   const motion = chooseMotion(state, plan);
   const fire = chooseFire(state, plan, motion);
   const special = chooseMine(state, motion);
