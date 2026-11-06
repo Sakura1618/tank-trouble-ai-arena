@@ -9,7 +9,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 候选 integrated-1：保留 model2 公开观测开火预测与连续追瞄，合入 contact1 可执行转角路径；内嵌对手模型不改。
+ * Gen4 候选 integrated-2：保留 model2 公开观测开火预测与连续追瞄，合入 contact1 可执行转角路径；内嵌对手模型不改。
  *
  * MIT License
  * 
@@ -2083,8 +2083,8 @@ function decide(state) {
   buildThreats(state);
   addModeledShot(state);
   const plan = makePlan(state, target);
-  if (plan.kind !== 'path') mem.pathWaypoint = null;
   const motion = chooseMotion(state, plan);
+  if (plan.kind !== 'path' || motion.ci !== 0) mem.pathWaypoint = null;
   const fire = chooseFire(state, plan, motion);
   const special = chooseMine(state, motion);
   mem.lastMove = motion.move;
