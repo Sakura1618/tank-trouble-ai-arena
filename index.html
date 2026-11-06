@@ -7,8 +7,9 @@
   <meta name="description" content="在你自己的手机或电脑上，亲自驾驶坦克挑战 JavaScript AI。无需登录，纯本地计算。">
   <title>Tank Trouble · 真人挑战 AI</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./viewer/style.css">
-  <script type="module" src="./viewer/app.js"></script>
+  <link rel="stylesheet" href="./web-challenge/style.css">
+  <link rel="stylesheet" href="./web-challenge/replay-panel.css">
+  <script type="module" src="./web-challenge/app.js"></script>
 </head>
 <body>
   <main id="lobby" class="lobby">
@@ -17,9 +18,9 @@
       <h1>坦克动荡</h1>
       <p class="hero-subtitle">真人挑战与 AI 对战</p>
       <div class="hero-actions"><button id="quick-start" class="primary">开始挑战 <span>↗</span></button><button id="watch-mode" class="secondary">AI 对战观战</button><button id="import-top" class="text-button">＋ 导入 AI</button></div>
-      <div class="tool-downloads"><a class="secondary download-link" href="./AI_Starter_Kit.zip" download="AI_Starter_Kit.zip">↓ AI 开发包</a><a class="secondary download-link" href="https://github.com/Walkersifolia/tank-trouble-ai-arena/releases/latest/download/AI_Training_Arena_Windows_x64.zip" download="AI_Training_Arena_Windows_x64.zip">↓ 本地黑盒训练场 <small>Windows x64 · 102.6 MB</small></a></div>
+      <div class="tool-downloads"><a class="secondary download-link" href="./AI_Starter_Kit.zip" download="AI_Starter_Kit.zip">↓ AI 开发包</a><a class="secondary download-link" href="https://github.com/Walkersifolia/tank-trouble-ai-arena/releases/latest/download/AI_Training_Arena_Windows_x64.zip" download="AI_Training_Arena_Windows_x64.zip">↓ 本地黑盒训练场 <small>Windows x64 · 102.7 MB</small></a><button id="open-recording" class="text-button">打开录像</button></div>
       </div>
-      <img class="arena-art" src="./viewer/arena.svg" alt="坦克发射的激光经墙壁反射，击中另一辆正在爆炸的坦克" width="800" height="480">
+      <img class="arena-art" src="./web-challenge/arena.svg" alt="坦克发射的激光经墙壁反射，击中另一辆正在爆炸的坦克" width="800" height="480">
     </section>
     <div class="section-heading"><h2>选择对手</h2></div>
     <section id="preset-list" class="preset-groups" aria-label="预设 AI"></section>
@@ -28,10 +29,8 @@
         <div class="section-heading"><h2>对局设置</h2></div>
         <div class="mode-switch" role="group" aria-label="游戏模式"><button id="human-mode" class="selected">真人 VS AI</button><button id="ai-mode">AI VS AI</button></div>
         <div id="human-settings" class="field-row"><label class="grow">你的名字<input id="human-name" maxlength="24" value="挑战者" autocomplete="nickname"></label><label>坦克颜色<input id="human-color" type="color" value="#43dfbd"></label></div>
-        <div class="field-row"><label class="grow">规则集<select id="ruleset"></select></label><label class="grow">地图<select id="map"></select></label></div>
-        <p id="ruleset-hint" class="hint"></p>
-        <div class="field-row"><label class="grow">种子<input id="seed" inputmode="numeric" maxlength="24" placeholder="留空随机，同种子可复现" autocomplete="off"></label><label class="grow">单局时限<select id="timeout"><option value="60">60 秒 · 默认</option><option value="120">120 秒</option><option value="180">180 秒</option><option value="300">300 秒</option></select></label></div>
-        <div class="check-row"><label><input type="checkbox" id="touch-setting"> 显示触控</label></div>
+        <div class="field-row"><label class="grow">地图<select id="map"><option value="random">随机迷宫 · 竞技场默认</option><option value="sparse">稀疏格栅</option><option value="symmetric">对称竞技场</option><option value="rooms">房间走廊</option></select></label><label class="grow">单局时限<select id="timeout"><option value="60">60 秒 · 默认</option><option value="120">120 秒</option><option value="180">180 秒</option><option value="300">300 秒</option></select></label></div>
+        <div class="check-row"><label><input type="checkbox" id="powerups" checked> 启用全部道具</label><label><input type="checkbox" id="wall-break" checked> 可破坏内墙</label><label><input type="checkbox" id="touch-setting"> 显示触控</label></div>
         <p class="hint">多名选手自由混战，真人最多一席。</p>
         <button id="start-match" class="primary full">进入战场 <span>→</span></button>
       </div>
@@ -42,13 +41,13 @@
         <div id="roster" class="roster"></div>
         <p id="roster-empty" class="hint" hidden>从下拉菜单添加网站选手，或导入自己的 CommonJS AI。</p>
         <input id="file-input" type="file" accept=".js,.cjs,text/javascript,application/javascript" multiple hidden>
-        <p class="kit-note"><a href="./AI_Starter_Kit.zip" download="AI_Starter_Kit.zip">下载开发工具包 ZIP</a> · <a href="./viewer/replay.html">录像回放</a></p>
+        <p class="kit-note"><a href="./AI_Starter_Kit.zip" download="AI_Starter_Kit.zip">下载开发工具包 ZIP</a></p>
         <p class="privacy-note">脚本仅在本机运行，刷新后需重新导入。</p>
       </div>
     </section>
     <section class="bottom-grid">
       <div class="panel"><div class="section-heading"><h2>挑战记录</h2><button id="reset-records" class="text-button">重置</button></div><div id="stats" class="stats"></div><details><summary>按对手查看</summary><div id="opponent-records"></div></details><p class="hint">战绩仅保存在当前浏览器。</p></div>
-      <div class="panel"><h2>操作说明</h2><div class="instructions"><p><kbd>W</kbd><kbd>S</kbd> 前进 / 倒车　<kbd>A</kbd><kbd>D</kbd> 原地转向</p><p><kbd>Space</kbd> 按住开火　<span class="special-hint"><kbd>Shift</kbd> 布雷　</span><kbd>Esc</kbd> 暂停</p><p>手机横屏：左摇杆前后移动、左右转向；右侧开火。</p><p>反弹炮弹也会击中自己。</p></div></div>
+      <div class="panel"><h2>操作说明</h2><div class="instructions"><p><kbd>W</kbd><kbd>S</kbd> 前进 / 倒车　<kbd>A</kbd><kbd>D</kbd> 原地转向</p><p><kbd>Space</kbd> 按住开火　<kbd>Shift</kbd> 布雷　<kbd>Esc</kbd> 暂停</p><p>手机横屏：左摇杆前后移动、左右转向；右侧开火、布雷。</p><p>反弹炮弹也会击中自己。</p></div></div>
     </section>
   </main>
   <section id="battle" class="battle" hidden aria-label="战场">
@@ -59,10 +58,10 @@
       <div class="canvas-wrap"><canvas id="battle-canvas" tabindex="0" aria-label="坦克对战画面"></canvas><div id="pause-overlay" class="battle-overlay" hidden><div><h2 id="pause-title">已暂停</h2><p id="pause-message">点击继续对战，或按 Esc 返回。</p><button id="resume" class="primary">继续对战</button></div></div></div>
       <div id="right-controls" class="touch-side right-controls"><button id="special-button" class="special-button">特殊<span>布雷</span></button><button id="fire-button" class="fire-button">开火<span>按住连发</span></button></div>
     </div>
-    <div class="battle-footer"><span id="weapon-status">普通炮弹</span><span id="performance-status">60 Hz 物理 · 本地运行</span><span class="keyboard-hint">WASD 移动转向 · Space 开火<span class="special-hint"> · Shift 布雷</span></span></div>
+    <div class="battle-footer"><span id="weapon-status">普通炮弹</span><span id="performance-status">60 Hz 物理 · 本地运行</span><span class="keyboard-hint">WASD 移动转向 · Space 开火 · Shift 布雷</span></div>
     <div class="rotate-hint"><span>↻</span><b>请横屏使用</b><p>请旋转手机，必要时关闭系统方向锁定。</p></div>
   </section>
-  <dialog id="result-dialog"><h2 id="result-title"></h2><p id="result-summary"></p><div id="result-details"></div><div class="dialog-actions"><button id="again" class="primary">换图再来</button><button id="same-seed" class="secondary">同种子重赛</button><button id="change-opponent" class="secondary">更换对手</button></div><div class="dialog-actions"><button id="open-replay" class="text-button">回放与诊断</button><button id="download-replay" class="text-button">下载录像</button></div></dialog>
+  <dialog id="result-dialog"><h2 id="result-title"></h2><p id="result-summary"></p><div id="result-details"></div><div class="dialog-actions"><button id="again" class="primary">换图再来</button><button id="same-seed" class="secondary">同种子重赛</button><button id="change-opponent" class="secondary">更换对手</button></div><div class="dialog-actions result-tools"><button id="view-replay" class="text-button">回放与诊断</button><button id="download-recording" class="text-button">下载录像</button></div><p class="hint">同种子重赛复用地图、出生和随机序列；真人操作、AI 限时搜索与超时可能改变结果。回放展示已记录的实际对局。</p></dialog>
   <div id="notice" role="status" hidden></div>
 </body>
 </html>
