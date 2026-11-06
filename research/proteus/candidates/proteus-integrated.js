@@ -9,7 +9,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 候选 integrated-2：保留 model2 公开观测开火预测与连续追瞄，合入 contact1 可执行转角路径；内嵌对手模型不改。
+ * Gen4 候选 integrated-3：保留 model2 公开观测开火预测与连续追瞄，合入 contact1 可执行转角路径；内嵌对手模型不改。
  *
  * MIT License
  * 
@@ -423,35 +423,32 @@ function clearSegment(x0, y0, x1, y1, radius) {
   return castRay(x0, y0, dx / length, dy / length, radius, length) >= length - 1e-6;
 }
 
-// 导航捷径按完整炮管转动包络与厚墙判定；弹道仍使用原 clearSegment。
-// 网格射线只检查跨墙平面的那一刻，斜切墙端时会漏掉随后进入端角的路径。
+// 沿导航方向平移的车身/炮管 OBB 与厚墙 AABB 做四轴分离检测。
+// 这里只检验直线路段，不把平移扫掠当成转动或多车接触模型。
+function sweptPathBoxBlocked(cx, cy, ux, uy, hx, hy, q) {
+  const rect = world.rect, dx = cx - rect[q], dy = cy - rect[q + 1];
+  const ex = rect[q + 2], ey = rect[q + 3], ax = Math.abs(ux), ay = Math.abs(uy);
+  if (Math.abs(dx) > ex + ax * hx + ay * hy) return false;
+  if (Math.abs(dy) > ey + ay * hx + ax * hy) return false;
+  if (Math.abs(dx * ux + dy * uy) > hx + ex * ax + ey * ay) return false;
+  if (Math.abs(-dx * uy + dy * ux) > hy + ex * ay + ey * ax) return false;
+  return true;
+}
+
 function clearTankPath(x0, y0, x1, y1) {
-  const dx = x1 - x0, dy = y1 - y0, rect = world.rect;
-  for (let q = 0; q < rect.length; q += 4) {
-    const hx = rect[q + 2] + bodyReach, hy = rect[q + 3] + bodyReach;
-    const left = rect[q] - hx, right = rect[q] + hx;
-    const top = rect[q + 1] - hy, bottom = rect[q + 1] + hy;
-    let enter = 0, leave = 1;
-    if (Math.abs(dx) < 1e-9) {
-      if (x0 < left || x0 > right) continue;
-    } else {
-      const a = (left - x0) / dx, b = (right - x0) / dx;
-      enter = Math.max(enter, Math.min(a, b));
-      leave = Math.min(leave, Math.max(a, b));
-    }
-    if (Math.abs(dy) < 1e-9) {
-      if (y0 < top || y0 > bottom) continue;
-    } else {
-      const a = (top - y0) / dy, b = (bottom - y0) / dy;
-      enter = Math.max(enter, Math.min(a, b));
-      leave = Math.min(leave, Math.max(a, b));
-    }
-    if (enter <= leave) return false;
+  const dx = x1 - x0, dy = y1 - y0, length = Math.hypot(dx, dy);
+  if (length < 1) return true;
+  const ux = dx / length, uy = dy / length, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const bodySweep = length / 2 + bodyHX, barrelSweep = length / 2 + barrelHX;
+  const barrelX = cx + ux * barrelC, barrelY = cy + uy * barrelC;
+  for (let q = 0; q < world.rect.length; q += 4) {
+    if (sweptPathBoxBlocked(cx, cy, ux, uy, bodySweep, bodyHY, q) ||
+        sweptPathBoxBlocked(barrelX, barrelY, ux, uy, barrelSweep, barrelHY, q)) return false;
   }
   return true;
 }
 
-// 沿路程场下降取格子中心作路径，再拉直：直接走向具有完整转动余量的最远点。
+// 沿路程场下降取格子中心作路径，再拉直：保留车身/炮管直线扫掠可通过的捷径。
 function buildPath(field, goalX, goalY, x, y) {
   const start = cellIndex(x, y);
   let cell = start, count = 0;
