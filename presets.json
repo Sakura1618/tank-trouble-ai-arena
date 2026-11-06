@@ -1,0 +1,137 @@
+[
+  {
+    "id": "sentry",
+    "name": "哨兵",
+    "codename": "SENTRY",
+    "color": "#8bd6b5",
+    "description": "站桩练习对手：缓慢转向瞄准、低频开火，不寻路、不躲弹。",
+    "difficulty": "新手 1",
+    "group": "training",
+    "order": 0,
+    "script": "./bots/sentry.js"
+  },
+  {
+    "id": "rusher",
+    "name": "莽夫",
+    "codename": "RUSHER",
+    "color": "#e7ae7d",
+    "description": "简单追人、低频射击，撞墙后短暂倒车转向；不躲弹、不预测弹道。",
+    "difficulty": "新手 2",
+    "group": "training",
+    "order": 1,
+    "script": "./bots/rusher.js"
+  },
+  {
+    "id": "scout",
+    "name": "巡游者",
+    "codename": "SCOUT",
+    "color": "#37d9bf",
+    "description": "沿迷宫通路寻找对手，练习移动中瞄准与应对来袭炮弹。",
+    "difficulty": "新手 3",
+    "group": "training",
+    "order": 2,
+    "script": "./bots/scout.js"
+  },
+  {
+    "id": "astra-basic",
+    "name": "Astra Basic",
+    "codename": "ASTRA BASIC",
+    "color": "#87b7ff",
+    "description": "入门对手：使用现有 Astra Basic 原版脚本，具备寻路、简单提前瞄准与短时躲弹。",
+    "difficulty": "阵营基础",
+    "group": "astra",
+    "order": 0,
+    "script": "./bots/astra-basic.js"
+  },
+  {
+    "id": "astra-g1-sovereign",
+    "name": "Astra Gen1「裁决者」",
+    "codename": "SOVEREIGN",
+    "color": "#62c6ff",
+    "description": "Astra 第一代原版算法选手。",
+    "group": "astra",
+    "order": 1,
+    "script": "./bots/astra-g1-sovereign.js"
+  },
+  {
+    "id": "astra-g2-axiom",
+    "name": "Astra Gen2「天枢」",
+    "codename": "AXIOM",
+    "color": "#a18bff",
+    "description": "Astra 第二代原版算法选手。",
+    "group": "astra",
+    "order": 2,
+    "script": "./bots/astra-g2-axiom.js"
+  },
+  {
+    "id": "astra-g3-imperator",
+    "name": "Astra Gen3「君临」",
+    "codename": "IMPERATOR",
+    "color": "#f4c76c",
+    "description": "Astra 第三代原版算法选手。",
+    "group": "astra",
+    "order": 3,
+    "script": "./bots/astra-g3-imperator.js"
+  },
+  {
+    "id": "chatgpt-g1-weaver",
+    "name": "ChatGPT Gen1「织局者」",
+    "codename": "WEAVER",
+    "color": "#4fd7a8",
+    "description": "ChatGPT 第一代原版算法选手。",
+    "group": "chatgpt",
+    "order": 1,
+    "script": "./bots/chatgpt-g1-weaver.js"
+  },
+  {
+    "id": "deepseek-basic",
+    "name": "DeepSeek Basic",
+    "codename": "DEEPSEEK BASIC",
+    "color": "#f9bb59",
+    "description": "入门对手：使用现有 DeepSeek Basic 原版脚本，保留其移动、弹道预测和武器决策。",
+    "difficulty": "阵营基础",
+    "group": "deepseek",
+    "order": 0,
+    "script": "./bots/deepseek-basic.js"
+  },
+  {
+    "id": "deepseek-g1-refract",
+    "name": "DeepSeek Gen1",
+    "codename": "REFRACT",
+    "color": "#9db8ff",
+    "description": "DeepSeek 第一代原版算法选手。",
+    "group": "deepseek",
+    "order": 1,
+    "script": "./bots/deepseek-g1-refract.js"
+  },
+  {
+    "id": "deepseek-g2-breaker",
+    "name": "DeepSeek Gen2",
+    "codename": "BREAKER",
+    "color": "#ec9f66",
+    "description": "DeepSeek 第二代原版算法选手。",
+    "group": "deepseek",
+    "order": 2,
+    "script": "./bots/deepseek-g2-breaker.js"
+  },
+  {
+    "id": "deepseek-g3-peregrine",
+    "name": "DeepSeek Gen3「游隼」",
+    "codename": "PEREGRINE",
+    "color": "#fc849c",
+    "description": "DeepSeek 第三代原版算法选手。",
+    "group": "deepseek",
+    "order": 3,
+    "script": "./bots/deepseek-g3-peregrine.js"
+  },
+  {
+    "id": "deepseek-g4-apex",
+    "name": "DeepSeek Gen4「尖峰」",
+    "codename": "APEX",
+    "color": "#d48cf2",
+    "description": "DeepSeek 第四代 APEX 原版算法选手。",
+    "group": "deepseek",
+    "order": 4,
+    "script": "./bots/deepseek-g4-apex.js"
+  }
+]
