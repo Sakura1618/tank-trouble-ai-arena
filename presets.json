@@ -133,5 +133,15 @@
     "group": "deepseek",
     "order": 4,
     "script": "./bots/deepseek-g4-apex.js"
+  },
+  {
+    "id": "opus-g1-prescience",
+    "name": "Opus Gen1「先机」",
+    "codename": "PRESCIENCE",
+    "color": "#b6e35a",
+    "description": "Opus 第一代选手：精确物理规划配合强化学习训练的价值网络，针对无道具玩法训练。",
+    "group": "opus",
+    "order": 1,
+    "script": "./bots/opus-g1-prescience.js"
   }
 ]
