@@ -1,0 +1,12 @@
+[
+  {
+    "id": "astra-g1-sovereign",
+    "name": "Astra Gen1「裁决者」",
+    "file": "bots/astra-g1-sovereign.js"
+  },
+  {
+    "id": "chatgpt-g1-weaver",
+    "name": "ChatGPT Gen1「织局者」",
+    "file": "bots/chatgpt-g1-weaver.js"
+  }
+]

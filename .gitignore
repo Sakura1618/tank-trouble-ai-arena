@@ -1,1 +1,16 @@
-training/
+node_modules/
+/dist/
+/training/*
+!/training/scripts/
+!/training/starter-kit/
+!/training/server/
+!/training/client/
+!/training/portable/
+!/training/README.md
+!/training/API.md
+!/training/opponents.json
+/training/client/config.json
+training-results/
+*.log
+.env
+.env.*

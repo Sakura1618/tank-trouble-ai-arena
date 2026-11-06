@@ -1,0 +1,9 @@
+{
+  "name": "tank-ai-starter-kit",
+  "private": true,
+  "type": "commonjs",
+  "version": "1.2.0",
+  "description": "Tank Trouble 公开 AI 接口、开发指南与独立脚本示例",
+  "scripts": { "check": "node check.js" },
+  "engines": { "node": ">=20" }
+}

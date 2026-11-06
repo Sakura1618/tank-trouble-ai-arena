@@ -19,7 +19,21 @@
 
 开发包包含 API、示例与允许迭代的提示词。Windows x64 本地训练场包含运行环境，仅内置 Astra Gen1、ChatGPT Gen1，并支持将自己的历史版本添加为训练对手。
 
-本仓库保存公开的静态发布文件，通过 `main` 分支根目录发布 GitHub Pages。训练场 ZIP 位于 Releases，避免把大型二进制文件写入 Git 历史。更新静态文件后推送 `main` 即会触发 Pages 更新。
+本仓库同时管理公开网页和本地工具，通过 `main` 分支根目录发布 GitHub Pages。HTML、JS、CSS、`bots/` 和 `presets.json` 都直接在本仓库维护。训练场 ZIP 位于 Releases；更新网页文件后推送 `main` 即会触发 Pages 更新。
+
+本地仓库位置为 `D:\Documents\ChatGPT\坦克动荡AI斗蛐蛐\tank-trouble\web-challenge`，目录内容与 GitHub 一致。仓库内部的 `web-challenge/` 保存页面脚本与样式；根目录的 `index.html` 是网站入口。以后直接在该仓库执行 `git pull`、修改、提交和推送，无需往返同步另一个发布目录。
+
+本地工具要求 Node.js 20+。在仓库根目录运行：
+
+```sh
+npm install --omit=dev
+npm run build
+npm run preview
+```
+
+`build` 生成独立静态目录 `dist/`，同时更新根目录的 `AI_Starter_Kit.zip`；`preview` 提供本地预览，`dev` 监听源码并重新构建。GitHub Pages 继续发布根目录，`dist/` 不提交。只修改网页时可直接提交对应源码；开发包资料变动时运行 `npm run kit:package` 后一并提交 ZIP。
+
+需要本地训练服务或 Windows 训练场打包时，先运行完整的 `npm install` 安装 Electron，再执行 `npm run training` 或 `npm run training:package`。训练包输出到 `training/dist/`，通过 Releases 上传。详见 [网页与发布说明](web-challenge/README.md)、[训练工具说明](training/README.md)。
 
 网页维护默认直接更新 GitHub Pages；本地 5173 服务已关闭，不自动重新启动。只有用户明确要求本地预览时才启用本地服务。
 
