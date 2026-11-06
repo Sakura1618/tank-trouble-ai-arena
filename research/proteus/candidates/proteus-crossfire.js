@@ -149,6 +149,7 @@ const mem = {
   unstickMove: 0,
   pathEdge: -1,
   coverCell: -1,
+  coverWaypoint: null,
 };
 
 const world = { S: 96, cols: 0, rows: 0, n: 0, hw: null, vw: null, penalty: null, edgeUntil: null,
@@ -401,7 +402,7 @@ function clearSegment(x0, y0, x1, y1, radius) {
 }
 
 // 沿路程场下降取格子中心作路径，再拉直：直接走向仍有车体余量的最远点。
-function buildPath(field, goalX, goalY, x, y) {
+function buildPath(field, goalX, goalY, x, y, clearance = tankR + 2) {
   const start = cellIndex(x, y);
   let cell = start, count = 0;
   mem.pathEdge = -1;
@@ -420,8 +421,8 @@ function buildPath(field, goalX, goalY, x, y) {
     count++;
   }
   let first = 0;
-  for (let i = count - 1; i > 0; i--) {
-    if (clearSegment(x, y, rawX[i], rawY[i], tankR + 2)) {
+  for (let i = count - 1; i > 0 && clearance <= tankR + 2; i--) {
+    if (clearSegment(x, y, rawX[i], rawY[i], clearance)) {
       first = i;
       break;
     }
@@ -1130,7 +1131,22 @@ function searchAim(me, track) {
 }
 
 function followField(plan, field, goalX, goalY, me) {
-  buildPath(field, goalX, goalY, me.x, me.y);
+  buildPath(field, goalX, goalY, me.x, me.y, plan.mode === 'cover' ? bodyReach : tankR + 2);
+  if (plan.mode === 'cover') {
+    const waypoint = mem.coverWaypoint;
+    // Crossing a grid boundary does not complete its waypoint: keep reaching
+    // the cell centre before taking the next turn around a wall endpoint.
+    if (waypoint && Math.hypot(waypoint.x - me.x, waypoint.y - me.y) > TUNE.waypointReach &&
+        field[cellIndex(waypoint.x, waypoint.y)] <= field[cellIndex(me.x, me.y)] &&
+        (pathN === 0 || Math.hypot(waypoint.x - pathX[0], waypoint.y - pathY[0]) > 1)) {
+      for (let i = Math.min(pathN, pathX.length - 1); i > 0; i--) {
+        pathX[i] = pathX[i - 1]; pathY[i] = pathY[i - 1];
+      }
+      pathX[0] = waypoint.x; pathY[0] = waypoint.y;
+      pathN = Math.min(pathN + 1, pathX.length);
+    }
+    mem.coverWaypoint = pathN ? { x: pathX[0], y: pathY[0] } : null;
+  }
   plan.kind = 'path';
   plan.field = field;
   plan.goalX = goalX;
@@ -1169,25 +1185,33 @@ function laserExposed(ex, ey, x, y) {
     clearSegment(ex, ey, x - nx, y - ny, 0);
 }
 
+function laserBounceExposed(x, y) {
+  const r2 = (tankR + 3) ** 2;
+  for (let i = 0; i < laserSegCount; i++) {
+    const b = i * 5;
+    if (laserSegs[b + 4] >= 0.7 && segDist2(x, y, laserSegs[b], laserSegs[b + 1], laserSegs[b + 2], laserSegs[b + 3]) < r2) return true;
+  }
+  return false;
+}
+
 function planLaserCover(state, plan) {
   const me = state.self;
   // Include carriers currently behind walls too: the escape destination must
   // not leave the shelter of a second firing direction.
   const lasers = state.enemies.filter(enemy => enemy.alive && enemy.laserShots > 0 &&
     enemy.cooldown < 1.2 && Math.hypot(enemy.x - me.x, enemy.y - me.y) < P.laser.maxLength);
-  if (!lasers.some(enemy => laserExposed(enemy.x, enemy.y, me.x, me.y))) {
+  if (!lasers.length || (!lasers.some(enemy => laserExposed(enemy.x, enemy.y, me.x, me.y)) &&
+      !laserBounceExposed(me.x, me.y))) {
     mem.coverCell = -1;
+    mem.coverWaypoint = null;
     return false;
   }
   function covered(cell) {
-    const x = centerX(cell), y = centerY(cell), r2 = (tankR + 3) ** 2;
+    const x = centerX(cell), y = centerY(cell);
     for (const enemy of lasers) if (laserExposed(enemy.x, enemy.y, x, y)) return false;
     // A wall shadow crossed by an already observed bounce line is not a
     // destination: keep moving through it toward a usable piece of cover.
-    for (let i = 0; i < laserSegCount; i++) {
-      const b = i * 5;
-      if (laserSegs[b + 4] >= 0.7 && segDist2(x, y, laserSegs[b], laserSegs[b + 1], laserSegs[b + 2], laserSegs[b + 3]) < r2) return false;
-    }
+    if (laserBounceExposed(x, y)) return false;
     return true;
   }
   let best = mem.coverCell;
@@ -1204,8 +1228,10 @@ function planLaserCover(state, plan) {
   mem.coverCell = best;
   if (best < 0) return false;
   flood(best, fieldLoot);
-  followField(plan, fieldLoot, centerX(best), centerY(best), me);
   plan.mode = 'cover';
+  // The formal vehicle includes a protruding barrel. A shortcut that clears
+  // the body circle can trap a turning barrel on a wall endpoint.
+  followField(plan, fieldLoot, centerX(best), centerY(best), me);
   plan.aimAngle = null;
   return true;
 }
@@ -1631,6 +1657,15 @@ function chooseMotion(state, plan) {
   const planEscape = escapeRisk(0, plan);
   candRisk[0] += planEscape;
   candCost[0] += planEscape;
+  // Cover is a destination with an execution horizon, not a new contest of
+  // hypothetical muzzle lines every tick. Stay on its route until an actual
+  // bullet/mine can hit inside the next 1/3 second, then replan immediately.
+  // Farther real hazards are observed again on the next tick; no action is
+  // blindly held, and ordinary firing still evaluates the selected rollout.
+  if (plan.mode === 'cover' && candHit[0] >= 10 && state.time >= mem.unstickUntil) {
+    mem.contOn = false;
+    return { ci: 0, move: candMove[0], turn: candTurn[0], doomed: false };
+  }
   const unsticking = state.time < mem.unstickUntil;
   let chosen = 0;
   if (unsticking || candHit[0] < HORIZON || candRisk[0] >= TUNE.calmCost) {
