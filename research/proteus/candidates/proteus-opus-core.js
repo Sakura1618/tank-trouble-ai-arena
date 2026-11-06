@@ -8,7 +8,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 候选 core-4：以 core-1 为对照，保留原决斗权重与保命弹距离，将内部搜索目标改为 12ms；正式单次预算仍 50ms。
+ * Gen4 候选 core-5：以 core-1 为对照，新增移动中持续跟随公开预测轨迹的直射追瞄候选；原风险与价值网络择优。
  *
  * MIT License
  * 
@@ -87,7 +87,7 @@ const TUNE = {
   boredDistance: 14,        // 1 秒内位移不足此值且未开火，视为模式活锁。
   boredHunt: 1.2,           // 活锁后强制追击的时长，单位：秒。
   unstickSeconds: 0.4,
-  softBudgetMs: 12,
+  softBudgetMs: 6,
   keepAway: 109.4938,            // 敌人有弹时保持的车心距离；瞬杀圈约 58。
   keepAwayWeight: 10.1387,
   zoneCost: 269.1974,            // 进入有弹敌人瞬杀圈的代价。
@@ -1189,6 +1189,7 @@ function makePlan(state, target) {
     plan.foeX = track.px[5];
     plan.foeY = track.py[5];
   }
+  plan.aimTrack = track && track.predicted ? track : null;
   const aim = target && track && track.predicted && armed ? searchAim(me, track) : null;
   const aimTime = aim ? aim.wait + aim.flight : Infinity;
   if (aim) {
@@ -1637,6 +1638,38 @@ function addAimManeuver(me, plan, move, angle) {
   scoreCandidate(ci, me, plan);
 }
 
+// 连续追瞄：每个预测步从本车的候选位置重新算提前角，
+// 避免把一整段移动/横穿后的射击机会等同于当前车位的一条固定朝向。
+// 只使用既有公开轨迹预测，保持同一套来弹、退路、价值网络择优。
+function addTrackingManeuver(me, plan, move) {
+  if (candCount >= MAX_CANDIDATES) return;
+  const track = plan.aimTrack, ci = candCount++, base = ci * HORIZON;
+  specKnown[ci] = 0;
+  sx = me.x;
+  sy = me.y;
+  sa = me.angle;
+  for (let k = 0; k < HORIZON; k++) {
+    let at = k;
+    if (me.laserShots <= 0) {
+      // 两次位置迭代覆盖敌方运动造成的飞行时间变化。
+      for (let j = 0; j < 2; j++) {
+        const flight = Math.max(0, Math.hypot(track.px[at] - sx, track.py[at] - sy) - P.muzzleOffset) / P.bulletSpeed;
+        at = Math.min(PRED_STEPS - 1, k + Math.round(flight / (dt * STEP_TICKS)));
+      }
+    }
+    const angle = Math.atan2(track.py[at] - sy, track.px[at] - sx);
+    const turn = clamp(wrap(angle - sa) / (k === 0 ? turnStep / STEP_TICKS : turnStep), -1, 1);
+    if (k === 0) {
+      candMove[ci] = move;
+      candTurn[ci] = turn;
+    }
+    stepTank(move, turn);
+    storeStep(base, k);
+  }
+  candEndAngle[ci] = sa;
+  scoreCandidate(ci, me, plan);
+}
+
 // 含“先转后走”：履带只能沿车头动，垂直弹道前往往要先转向。
 function generateCandidates(me, plan) {
   if (candidatesReady) return;
@@ -1653,6 +1686,9 @@ function generateCandidates(me, plan) {
   }
   if (plan.aimAngle !== null) {
     for (const move of [0, 1, -1]) addAimManeuver(me, plan, move, plan.aimAngle);
+  }
+  if (plan.aimTrack && clearSegment(me.x, me.y, plan.aimTrack.px[0], plan.aimTrack.py[0], P.bulletRadius)) {
+    for (const move of [0, 1, -1]) addTrackingManeuver(me, plan, move);
   }
   if (plan.foeSeen) {
     const facing = Math.atan2(plan.foeY - me.y, plan.foeX - me.x);
