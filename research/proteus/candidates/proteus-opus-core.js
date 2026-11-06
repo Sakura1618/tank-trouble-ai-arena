@@ -8,7 +8,7 @@
  * 源版本 85305b7da0f540810f6926e5a7fbfbd1eda209e1，bots/opus-g1-prescience.js。
  * 保留其公开物理近似、预测器竞选、候选机动、退路分支与弹位管理。
  * 完整保留 Opus 已公开的价值网络及常量，仅进行推理，不训练神经网络；不包含神谕代码。
- * Gen4 候选 core-3：完整 Opus 机动价值、实际动作自弹安全、同 Tick 拾取，正面对决保留较多瞄线/近身风险。
+ * Gen4 候选 core-4：以 core-1 为对照，保留原决斗权重与保命弹距离，将内部搜索目标改为 12ms；正式单次预算仍 50ms。
  *
  * MIT License
  * 
@@ -87,7 +87,7 @@ const TUNE = {
   boredDistance: 14,        // 1 秒内位移不足此值且未开火，视为模式活锁。
   boredHunt: 1.2,           // 活锁后强制追击的时长，单位：秒。
   unstickSeconds: 0.4,
-  softBudgetMs: 6,
+  softBudgetMs: 12,
   keepAway: 109.4938,            // 敌人有弹时保持的车心距离；瞬杀圈约 58。
   keepAwayWeight: 10.1387,
   zoneCost: 269.1974,            // 进入有弹敌人瞬杀圈的代价。
@@ -95,7 +95,7 @@ const TUNE = {
   chargeRange: 51.5098,          // 对手没弹时冲到此距离。
   duelRange: 253.7161,           // 这个距离内有射击解就优先转身开火，而不是逃。
   duelTime: 1.1553,            // 转向加飞行不超过此秒数才算对决。
-  duelThreatScale: 0.28,    // 对决时炮口线与瞬杀圈的代价折扣；真实来弹不打折。
+  duelThreatScale: 0.0934,    // 对决时炮口线与瞬杀圈的代价折扣；真实来弹不打折。
   duelAimWeight: 68.9858,
   lastShotRange: 70.1767,        // 保留原版保命弹距离；提前使用最后一发未改善小批总体得分。
   reserveBullets: 1,
