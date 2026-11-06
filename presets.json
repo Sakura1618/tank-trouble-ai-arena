@@ -81,7 +81,8 @@
     "description": "无形可测，无隙可乘。提炼先机的物理规划与退路搜索，联合评估多方威胁。",
     "group": "astra",
     "order": 4,
-    "script": "./bots/astra-g4-proteus.js"
+    "script": "./bots/astra-g4-proteus.js",
+    "motto": "「无形可测，无隙可乘。」"
   },
   {
     "id": "chatgpt-g1-weaver",

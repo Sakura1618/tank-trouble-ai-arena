@@ -122,6 +122,7 @@ function renderPresets() {
     card.style.setProperty('--bot-color', preset.color);
     card.append(node('span', '▣', 'bot-icon'), node('h3', preset.name), node('span', preset.codename, 'codename'));
     if (preset.group === 'training') card.append(node('p', preset.description));
+    if (preset.motto) card.append(node('p', preset.motto));
     const actions = node('div', undefined, 'card-actions');
     const challenge = node('button', available ? '挑战此 AI  ↗' : '本地导入', 'challenge');
     challenge.onclick = () => {
