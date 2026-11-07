@@ -1,0 +1,1603 @@
+{
+  "protocol": {
+    "phase": "final evaluation only; development and constructed cases excluded",
+    "codeCommit": "77f0b3cff3d7c2149e4b15b51a4322286e7061bc",
+    "started": "2026-11-06T23:13:24.824Z",
+    "finished": "2026-11-06T23:54:24.115Z",
+    "node": "v24.18.1",
+    "matches": 264,
+    "decisionMs": 50,
+    "physicsHz": 60,
+    "timeout": 60,
+    "wallBreak": false
+  },
+  "summary": {
+    "astra-g4-proteus": {
+      "games": 184,
+      "wins": 126,
+      "losses": 57,
+      "draws": 1,
+      "activeKills": 183,
+      "suicides": 2,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 0,
+      "faults": 0,
+      "longestBlockedTicks": 28,
+      "rapidTurnReversals": 10356,
+      "lowMotionTicks": 396,
+      "decisions": 109705,
+      "weightedMeanDecisionMs": 6.4520240371906485,
+      "maxDecisionMs": 26.108,
+      "shots": 996,
+      "pickups": 16,
+      "pickupsByType": {
+        "mine": 4,
+        "laser": 2,
+        "shield": 7,
+        "scatter": 3
+      },
+      "deathsByWeapon": {
+        "bullet": 57,
+        "scatter": 1
+      }
+    },
+    "astra-g3-imperator": {
+      "games": 184,
+      "wins": 25,
+      "losses": 159,
+      "draws": 0,
+      "activeKills": 37,
+      "suicides": 3,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 0,
+      "faults": 0,
+      "longestBlockedTicks": 70,
+      "rapidTurnReversals": 5070,
+      "lowMotionTicks": 1375,
+      "decisions": 83362,
+      "weightedMeanDecisionMs": 6.711209256015932,
+      "maxDecisionMs": 28.385,
+      "shots": 827,
+      "pickups": 6,
+      "pickupsByType": {
+        "laser": 3,
+        "mine": 1,
+        "shield": 1,
+        "scatter": 1
+      },
+      "deathsByWeapon": {
+        "bullet": 156,
+        "laser": 3
+      }
+    },
+    "opus-g1-prescience": {
+      "games": 144,
+      "wins": 85,
+      "losses": 58,
+      "draws": 1,
+      "activeKills": 121,
+      "suicides": 1,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 1,
+      "faults": 1,
+      "longestBlockedTicks": 30,
+      "rapidTurnReversals": 9971,
+      "lowMotionTicks": 1000,
+      "decisions": 91528,
+      "weightedMeanDecisionMs": 3.6932158683681515,
+      "maxDecisionMs": 71.623,
+      "shots": 792,
+      "pickups": 10,
+      "pickupsByType": {
+        "mine": 2,
+        "scatter": 2,
+        "laser": 1,
+        "shield": 5
+      },
+      "deathsByWeapon": {
+        "bullet": 54,
+        "laser": 2,
+        "mine": 1,
+        "scatter": 1
+      }
+    },
+    "deepseek-g5-mentor": {
+      "games": 144,
+      "wins": 27,
+      "losses": 117,
+      "draws": 0,
+      "activeKills": 37,
+      "suicides": 7,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 1,
+      "faults": 1,
+      "longestBlockedTicks": 127,
+      "rapidTurnReversals": 4170,
+      "lowMotionTicks": 1326,
+      "decisions": 67890,
+      "weightedMeanDecisionMs": 11.918797923110919,
+      "maxDecisionMs": 51.039,
+      "shots": 688,
+      "pickups": 4,
+      "pickupsByType": {
+        "shield": 3,
+        "laser": 1
+      },
+      "deathsByWeapon": {
+        "bullet": 114,
+        "laser": 2
+      }
+    }
+  },
+  "duelsByPair": {
+    "astra-g4-proteus vs astra-g3-imperator": {
+      "astra-g4-proteus": {
+        "games": 40,
+        "wins": 39,
+        "losses": 1,
+        "draws": 0,
+        "activeKills": 38,
+        "suicides": 0,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 16,
+        "rapidTurnReversals": 1378,
+        "lowMotionTicks": 47,
+        "decisions": 15541,
+        "weightedMeanDecisionMs": 7.781041438774852,
+        "maxDecisionMs": 20.229,
+        "shots": 171,
+        "pickups": 3,
+        "pickupsByType": {
+          "mine": 2,
+          "laser": 1
+        },
+        "deathsByWeapon": {
+          "bullet": 1
+        }
+      },
+      "astra-g3-imperator": {
+        "games": 40,
+        "wins": 1,
+        "losses": 39,
+        "draws": 0,
+        "activeKills": 1,
+        "suicides": 1,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 67,
+        "rapidTurnReversals": 935,
+        "lowMotionTicks": 426,
+        "decisions": 15541,
+        "weightedMeanDecisionMs": 5.929520815906311,
+        "maxDecisionMs": 11.677,
+        "shots": 171,
+        "pickups": 0,
+        "pickupsByType": {},
+        "deathsByWeapon": {
+          "bullet": 38,
+          "laser": 1
+        }
+      }
+    },
+    "astra-g4-proteus vs opus-g1-prescience": {
+      "astra-g4-proteus": {
+        "games": 40,
+        "wins": 21,
+        "losses": 18,
+        "draws": 1,
+        "activeKills": 22,
+        "suicides": 1,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 6,
+        "rapidTurnReversals": 1865,
+        "lowMotionTicks": 27,
+        "decisions": 22473,
+        "weightedMeanDecisionMs": 7.210058737151248,
+        "maxDecisionMs": 23.296,
+        "shots": 200,
+        "pickups": 8,
+        "pickupsByType": {
+          "mine": 2,
+          "laser": 1,
+          "shield": 2,
+          "scatter": 3
+        },
+        "deathsByWeapon": {
+          "bullet": 19
+        }
+      },
+      "opus-g1-prescience": {
+        "games": 40,
+        "wins": 18,
+        "losses": 21,
+        "draws": 1,
+        "activeKills": 18,
+        "suicides": 0,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 29,
+        "rapidTurnReversals": 2428,
+        "lowMotionTicks": 164,
+        "decisions": 22473,
+        "weightedMeanDecisionMs": 3.5831684688292618,
+        "maxDecisionMs": 16.983,
+        "shots": 194,
+        "pickups": 2,
+        "pickupsByType": {
+          "mine": 1,
+          "scatter": 1
+        },
+        "deathsByWeapon": {
+          "bullet": 20,
+          "laser": 1,
+          "scatter": 1
+        }
+      }
+    },
+    "astra-g4-proteus vs deepseek-g5-mentor": {
+      "astra-g4-proteus": {
+        "games": 40,
+        "wins": 38,
+        "losses": 2,
+        "draws": 0,
+        "activeKills": 36,
+        "suicides": 1,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 25,
+        "rapidTurnReversals": 1354,
+        "lowMotionTicks": 51,
+        "decisions": 13806,
+        "weightedMeanDecisionMs": 7.840431189337968,
+        "maxDecisionMs": 20.178,
+        "shots": 167,
+        "pickups": 0,
+        "pickupsByType": {},
+        "deathsByWeapon": {
+          "bullet": 2
+        }
+      },
+      "deepseek-g5-mentor": {
+        "games": 40,
+        "wins": 2,
+        "losses": 38,
+        "draws": 0,
+        "activeKills": 1,
+        "suicides": 2,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 127,
+        "rapidTurnReversals": 863,
+        "lowMotionTicks": 633,
+        "decisions": 13806,
+        "weightedMeanDecisionMs": 10.520772417789367,
+        "maxDecisionMs": 20.165,
+        "shots": 170,
+        "pickups": 0,
+        "pickupsByType": {},
+        "deathsByWeapon": {
+          "bullet": 38
+        }
+      }
+    },
+    "astra-g3-imperator vs opus-g1-prescience": {
+      "astra-g3-imperator": {
+        "games": 40,
+        "wins": 3,
+        "losses": 37,
+        "draws": 0,
+        "activeKills": 2,
+        "suicides": 1,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 67,
+        "rapidTurnReversals": 830,
+        "lowMotionTicks": 388,
+        "decisions": 13700,
+        "weightedMeanDecisionMs": 5.853007445255474,
+        "maxDecisionMs": 12.668,
+        "shots": 156,
+        "pickups": 1,
+        "pickupsByType": {
+          "laser": 1
+        },
+        "deathsByWeapon": {
+          "bullet": 37
+        }
+      },
+      "opus-g1-prescience": {
+        "games": 40,
+        "wins": 37,
+        "losses": 3,
+        "draws": 0,
+        "activeKills": 36,
+        "suicides": 1,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 26,
+        "rapidTurnReversals": 1421,
+        "lowMotionTicks": 130,
+        "decisions": 13700,
+        "weightedMeanDecisionMs": 3.7765495620437965,
+        "maxDecisionMs": 12.45,
+        "shots": 167,
+        "pickups": 1,
+        "pickupsByType": {
+          "mine": 1
+        },
+        "deathsByWeapon": {
+          "bullet": 1,
+          "laser": 1,
+          "mine": 1
+        }
+      }
+    },
+    "astra-g3-imperator vs deepseek-g5-mentor": {
+      "astra-g3-imperator": {
+        "games": 40,
+        "wins": 19,
+        "losses": 21,
+        "draws": 0,
+        "activeKills": 18,
+        "suicides": 0,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 32,
+        "rapidTurnReversals": 974,
+        "lowMotionTicks": 208,
+        "decisions": 18410,
+        "weightedMeanDecisionMs": 5.869711950027159,
+        "maxDecisionMs": 14.358,
+        "shots": 180,
+        "pickups": 3,
+        "pickupsByType": {
+          "laser": 1,
+          "mine": 1,
+          "shield": 1
+        },
+        "deathsByWeapon": {
+          "bullet": 20,
+          "laser": 1
+        }
+      },
+      "deepseek-g5-mentor": {
+        "games": 40,
+        "wins": 21,
+        "losses": 19,
+        "draws": 0,
+        "activeKills": 21,
+        "suicides": 1,
+        "matchTimeouts": 0,
+        "decisionTimeouts": 0,
+        "faults": 0,
+        "longestBlockedTicks": 44,
+        "rapidTurnReversals": 983,
+        "lowMotionTicks": 226,
+        "decisions": 18410,
+        "weightedMeanDecisionMs": 10.358859532862574,
+        "maxDecisionMs": 22.052,
+        "shots": 175,
+        "pickups": 3,
+        "pickupsByType": {
+          "shield": 2,
+          "laser": 1
+        },
+        "deathsByWeapon": {
+          "bullet": 18,
+          "laser": 1
+        }
+      }
+    }
+  },
+  "ffaSummary": {
+    "astra-g4-proteus": {
+      "games": 64,
+      "wins": 28,
+      "losses": 36,
+      "draws": 0,
+      "activeKills": 87,
+      "suicides": 0,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 0,
+      "faults": 0,
+      "longestBlockedTicks": 28,
+      "rapidTurnReversals": 5759,
+      "lowMotionTicks": 271,
+      "decisions": 57885,
+      "weightedMeanDecisionMs": 5.469767452707954,
+      "maxDecisionMs": 26.108,
+      "shots": 458,
+      "pickups": 5,
+      "pickupsByType": {
+        "shield": 5
+      },
+      "deathsByWeapon": {
+        "bullet": 35,
+        "scatter": 1
+      }
+    },
+    "astra-g3-imperator": {
+      "games": 64,
+      "wins": 2,
+      "losses": 62,
+      "draws": 0,
+      "activeKills": 16,
+      "suicides": 1,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 0,
+      "faults": 0,
+      "longestBlockedTicks": 70,
+      "rapidTurnReversals": 2331,
+      "lowMotionTicks": 353,
+      "decisions": 35711,
+      "weightedMeanDecisionMs": 7.814442160678782,
+      "maxDecisionMs": 28.385,
+      "shots": 320,
+      "pickups": 2,
+      "pickupsByType": {
+        "laser": 1,
+        "scatter": 1
+      },
+      "deathsByWeapon": {
+        "bullet": 61,
+        "laser": 1
+      }
+    },
+    "opus-g1-prescience": {
+      "games": 64,
+      "wins": 30,
+      "losses": 34,
+      "draws": 0,
+      "activeKills": 67,
+      "suicides": 0,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 1,
+      "faults": 1,
+      "longestBlockedTicks": 30,
+      "rapidTurnReversals": 6122,
+      "lowMotionTicks": 706,
+      "decisions": 55355,
+      "weightedMeanDecisionMs": 3.7172683226447476,
+      "maxDecisionMs": 71.623,
+      "shots": 431,
+      "pickups": 7,
+      "pickupsByType": {
+        "laser": 1,
+        "shield": 5,
+        "scatter": 1
+      },
+      "deathsByWeapon": {
+        "bullet": 33
+      }
+    },
+    "deepseek-g5-mentor": {
+      "games": 64,
+      "wins": 4,
+      "losses": 60,
+      "draws": 0,
+      "activeKills": 15,
+      "suicides": 4,
+      "matchTimeouts": 0,
+      "decisionTimeouts": 1,
+      "faults": 1,
+      "longestBlockedTicks": 80,
+      "rapidTurnReversals": 2324,
+      "lowMotionTicks": 467,
+      "decisions": 35674,
+      "weightedMeanDecisionMs": 13.264865252004258,
+      "maxDecisionMs": 51.039,
+      "shots": 343,
+      "pickups": 1,
+      "pickupsByType": {
+        "shield": 1
+      },
+      "deathsByWeapon": {
+        "bullet": 58,
+        "laser": 1
+      }
+    }
+  },
+  "batches": [
+    {
+      "file": "research/proteus/final-duels-no-powerups.json",
+      "protocol": {
+        "phase": "final untouched-seed evaluation; no tuning after freeze",
+        "codeCommit": "77f0b3cff3d7c2149e4b15b51a4322286e7061bc",
+        "started": "2026-11-06T23:13:24.824Z",
+        "finished": "2026-11-06T23:23:29.508Z",
+        "mode": "duel",
+        "seedStart": 1100100,
+        "seedCount": 10,
+        "node": "v24.18.1",
+        "rules": {
+          "timeout": 60,
+          "powerups": false,
+          "wallBreak": false
+        },
+        "decisionMs": 50,
+        "hardInterruptionMs": 250,
+        "physicsHz": 60,
+        "observation": "unchanged public observe(); all actors see the same world tick",
+        "execution": "One Node process; each entrant compiled once and each match uses a new VM context; serial decisions under formal elapsed-time budget",
+        "order": "At each seed all five pairs run; pair order cyclically rotates by seed index; each pair uses both spawn rotations",
+        "eventRetention": "All death, pickup and shield events; per-player shots retained; individual fire events and trace windows omitted",
+        "sources": [
+          {
+            "id": "astra-g4-proteus",
+            "filename": "bots/astra-g4-proteus.js"
+          },
+          {
+            "id": "astra-g3-imperator",
+            "filename": "bots/astra-g3-imperator.js"
+          },
+          {
+            "id": "opus-g1-prescience",
+            "filename": "bots/opus-g1-prescience.js"
+          },
+          {
+            "id": "deepseek-g5-mentor",
+            "filename": "bots/deepseek-g5-mentor.js"
+          }
+        ]
+      },
+      "summary": {
+        "astra-g4-proteus": {
+          "games": 60,
+          "wins": 49,
+          "losses": 11,
+          "draws": 0,
+          "activeKills": 49,
+          "suicides": 0,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 25,
+          "rapidTurnReversals": 2503,
+          "lowMotionTicks": 50,
+          "decisions": 26511,
+          "weightedMeanDecisionMs": 7.686132586473541,
+          "maxDecisionMs": 23.296,
+          "shots": 274,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 11
+          }
+        },
+        "astra-g3-imperator": {
+          "games": 60,
+          "wins": 13,
+          "losses": 47,
+          "draws": 0,
+          "activeKills": 12,
+          "suicides": 1,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 67,
+          "rapidTurnReversals": 1455,
+          "lowMotionTicks": 561,
+          "decisions": 25209,
+          "weightedMeanDecisionMs": 5.82031548256575,
+          "maxDecisionMs": 12.668,
+          "shots": 258,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 47
+          }
+        },
+        "opus-g1-prescience": {
+          "games": 40,
+          "wins": 29,
+          "losses": 11,
+          "draws": 0,
+          "activeKills": 28,
+          "suicides": 0,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 22,
+          "rapidTurnReversals": 1529,
+          "lowMotionTicks": 64,
+          "decisions": 17317,
+          "weightedMeanDecisionMs": 3.7162600334930995,
+          "maxDecisionMs": 12.997,
+          "shots": 177,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 11
+          }
+        },
+        "deepseek-g5-mentor": {
+          "games": 40,
+          "wins": 9,
+          "losses": 31,
+          "draws": 0,
+          "activeKills": 9,
+          "suicides": 1,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 127,
+          "rapidTurnReversals": 968,
+          "lowMotionTicks": 507,
+          "decisions": 17351,
+          "weightedMeanDecisionMs": 10.328164659097459,
+          "maxDecisionMs": 17.35,
+          "shots": 181,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 31
+          }
+        }
+      },
+      "byPair": {
+        "astra-g4-proteus vs astra-g3-imperator": {
+          "astra-g4-proteus": {
+            "games": 20,
+            "wins": 19,
+            "losses": 1,
+            "draws": 0,
+            "activeKills": 19,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 10,
+            "rapidTurnReversals": 747,
+            "lowMotionTicks": 13,
+            "decisions": 8526,
+            "weightedMeanDecisionMs": 7.861308468214872,
+            "maxDecisionMs": 15.238,
+            "shots": 90,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 1
+            }
+          },
+          "astra-g3-imperator": {
+            "games": 20,
+            "wins": 1,
+            "losses": 19,
+            "draws": 0,
+            "activeKills": 1,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 24,
+            "rapidTurnReversals": 463,
+            "lowMotionTicks": 152,
+            "decisions": 8526,
+            "weightedMeanDecisionMs": 5.846383063570255,
+            "maxDecisionMs": 10.485,
+            "shots": 88,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 19
+            }
+          }
+        },
+        "astra-g4-proteus vs opus-g1-prescience": {
+          "astra-g4-proteus": {
+            "games": 20,
+            "wins": 10,
+            "losses": 10,
+            "draws": 0,
+            "activeKills": 10,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 4,
+            "rapidTurnReversals": 914,
+            "lowMotionTicks": 11,
+            "decisions": 9514,
+            "weightedMeanDecisionMs": 7.353930103006098,
+            "maxDecisionMs": 23.296,
+            "shots": 91,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 10
+            }
+          },
+          "opus-g1-prescience": {
+            "games": 20,
+            "wins": 10,
+            "losses": 10,
+            "draws": 0,
+            "activeKills": 10,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 6,
+            "rapidTurnReversals": 860,
+            "lowMotionTicks": 14,
+            "decisions": 9514,
+            "weightedMeanDecisionMs": 3.6474621610258566,
+            "maxDecisionMs": 12.997,
+            "shots": 91,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 10
+            }
+          }
+        },
+        "astra-g4-proteus vs deepseek-g5-mentor": {
+          "astra-g4-proteus": {
+            "games": 20,
+            "wins": 20,
+            "losses": 0,
+            "draws": 0,
+            "activeKills": 20,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 25,
+            "rapidTurnReversals": 842,
+            "lowMotionTicks": 26,
+            "decisions": 8471,
+            "weightedMeanDecisionMs": 7.882924566166924,
+            "maxDecisionMs": 19.71,
+            "shots": 93,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {}
+          },
+          "deepseek-g5-mentor": {
+            "games": 20,
+            "wins": 0,
+            "losses": 20,
+            "draws": 0,
+            "activeKills": 0,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 127,
+            "rapidTurnReversals": 499,
+            "lowMotionTicks": 398,
+            "decisions": 8471,
+            "weightedMeanDecisionMs": 10.473524023137763,
+            "maxDecisionMs": 17.35,
+            "shots": 89,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 20
+            }
+          }
+        },
+        "astra-g3-imperator vs opus-g1-prescience": {
+          "astra-g3-imperator": {
+            "games": 20,
+            "wins": 1,
+            "losses": 19,
+            "draws": 0,
+            "activeKills": 1,
+            "suicides": 1,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 67,
+            "rapidTurnReversals": 483,
+            "lowMotionTicks": 246,
+            "decisions": 7803,
+            "weightedMeanDecisionMs": 5.844618992695116,
+            "maxDecisionMs": 12.668,
+            "shots": 79,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 19
+            }
+          },
+          "opus-g1-prescience": {
+            "games": 20,
+            "wins": 19,
+            "losses": 1,
+            "draws": 0,
+            "activeKills": 18,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 22,
+            "rapidTurnReversals": 669,
+            "lowMotionTicks": 50,
+            "decisions": 7803,
+            "weightedMeanDecisionMs": 3.800143534537998,
+            "maxDecisionMs": 12.45,
+            "shots": 86,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 1
+            }
+          }
+        },
+        "astra-g3-imperator vs deepseek-g5-mentor": {
+          "astra-g3-imperator": {
+            "games": 20,
+            "wins": 11,
+            "losses": 9,
+            "draws": 0,
+            "activeKills": 10,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 32,
+            "rapidTurnReversals": 509,
+            "lowMotionTicks": 163,
+            "decisions": 8880,
+            "weightedMeanDecisionMs": 5.773931193693693,
+            "maxDecisionMs": 10.181,
+            "shots": 91,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 9
+            }
+          },
+          "deepseek-g5-mentor": {
+            "games": 20,
+            "wins": 9,
+            "losses": 11,
+            "draws": 0,
+            "activeKills": 9,
+            "suicides": 1,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 44,
+            "rapidTurnReversals": 469,
+            "lowMotionTicks": 109,
+            "decisions": 8880,
+            "weightedMeanDecisionMs": 10.189500337837837,
+            "maxDecisionMs": 15.518,
+            "shots": 92,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 11
+            }
+          }
+        }
+      }
+    },
+    {
+      "file": "research/proteus/final-duels-powerups.json",
+      "protocol": {
+        "phase": "final untouched-seed evaluation; no tuning after freeze",
+        "codeCommit": "77f0b3cff3d7c2149e4b15b51a4322286e7061bc",
+        "started": "2026-11-06T23:23:29.510Z",
+        "finished": "2026-11-06T23:32:45.694Z",
+        "mode": "duel",
+        "seedStart": 1200100,
+        "seedCount": 10,
+        "node": "v24.18.1",
+        "rules": {
+          "timeout": 60,
+          "powerups": true,
+          "wallBreak": false
+        },
+        "decisionMs": 50,
+        "hardInterruptionMs": 250,
+        "physicsHz": 60,
+        "observation": "unchanged public observe(); all actors see the same world tick",
+        "execution": "One Node process; each entrant compiled once and each match uses a new VM context; serial decisions under formal elapsed-time budget",
+        "order": "At each seed all five pairs run; pair order cyclically rotates by seed index; each pair uses both spawn rotations",
+        "eventRetention": "All death, pickup and shield events; per-player shots retained; individual fire events and trace windows omitted",
+        "sources": [
+          {
+            "id": "astra-g4-proteus",
+            "filename": "bots/astra-g4-proteus.js"
+          },
+          {
+            "id": "astra-g3-imperator",
+            "filename": "bots/astra-g3-imperator.js"
+          },
+          {
+            "id": "opus-g1-prescience",
+            "filename": "bots/opus-g1-prescience.js"
+          },
+          {
+            "id": "deepseek-g5-mentor",
+            "filename": "bots/deepseek-g5-mentor.js"
+          }
+        ]
+      },
+      "summary": {
+        "astra-g4-proteus": {
+          "games": 60,
+          "wins": 49,
+          "losses": 10,
+          "draws": 1,
+          "activeKills": 47,
+          "suicides": 2,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 22,
+          "rapidTurnReversals": 2094,
+          "lowMotionTicks": 75,
+          "decisions": 25309,
+          "weightedMeanDecisionMs": 7.405853530364691,
+          "maxDecisionMs": 20.229,
+          "shots": 264,
+          "pickups": 11,
+          "pickupsByType": {
+            "mine": 4,
+            "laser": 2,
+            "shield": 2,
+            "scatter": 3
+          },
+          "deathsByWeapon": {
+            "bullet": 11
+          }
+        },
+        "astra-g3-imperator": {
+          "games": 60,
+          "wins": 10,
+          "losses": 50,
+          "draws": 0,
+          "activeKills": 9,
+          "suicides": 1,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 67,
+          "rapidTurnReversals": 1284,
+          "lowMotionTicks": 461,
+          "decisions": 22442,
+          "weightedMeanDecisionMs": 5.9564187238214075,
+          "maxDecisionMs": 14.358,
+          "shots": 249,
+          "pickups": 4,
+          "pickupsByType": {
+            "laser": 2,
+            "mine": 1,
+            "shield": 1
+          },
+          "deathsByWeapon": {
+            "bullet": 48,
+            "laser": 2
+          }
+        },
+        "opus-g1-prescience": {
+          "games": 40,
+          "wins": 26,
+          "losses": 13,
+          "draws": 1,
+          "activeKills": 26,
+          "suicides": 1,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 29,
+          "rapidTurnReversals": 2320,
+          "lowMotionTicks": 230,
+          "decisions": 18856,
+          "weightedMeanDecisionMs": 3.6014424586338567,
+          "maxDecisionMs": 16.983,
+          "shots": 184,
+          "pickups": 3,
+          "pickupsByType": {
+            "mine": 2,
+            "scatter": 1
+          },
+          "deathsByWeapon": {
+            "bullet": 10,
+            "laser": 2,
+            "mine": 1,
+            "scatter": 1
+          }
+        },
+        "deepseek-g5-mentor": {
+          "games": 40,
+          "wins": 14,
+          "losses": 26,
+          "draws": 0,
+          "activeKills": 13,
+          "suicides": 2,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 26,
+          "rapidTurnReversals": 878,
+          "lowMotionTicks": 352,
+          "decisions": 14865,
+          "weightedMeanDecisionMs": 10.545065792129162,
+          "maxDecisionMs": 22.052,
+          "shots": 164,
+          "pickups": 3,
+          "pickupsByType": {
+            "shield": 2,
+            "laser": 1
+          },
+          "deathsByWeapon": {
+            "bullet": 25,
+            "laser": 1
+          }
+        }
+      },
+      "byPair": {
+        "astra-g4-proteus vs astra-g3-imperator": {
+          "astra-g4-proteus": {
+            "games": 20,
+            "wins": 20,
+            "losses": 0,
+            "draws": 0,
+            "activeKills": 19,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 16,
+            "rapidTurnReversals": 631,
+            "lowMotionTicks": 34,
+            "decisions": 7015,
+            "weightedMeanDecisionMs": 7.68348524590164,
+            "maxDecisionMs": 20.229,
+            "shots": 81,
+            "pickups": 3,
+            "pickupsByType": {
+              "mine": 2,
+              "laser": 1
+            },
+            "deathsByWeapon": {}
+          },
+          "astra-g3-imperator": {
+            "games": 20,
+            "wins": 0,
+            "losses": 20,
+            "draws": 0,
+            "activeKills": 0,
+            "suicides": 1,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 67,
+            "rapidTurnReversals": 472,
+            "lowMotionTicks": 274,
+            "decisions": 7015,
+            "weightedMeanDecisionMs": 6.030566072701355,
+            "maxDecisionMs": 11.677,
+            "shots": 83,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 19,
+              "laser": 1
+            }
+          }
+        },
+        "astra-g4-proteus vs opus-g1-prescience": {
+          "astra-g4-proteus": {
+            "games": 20,
+            "wins": 11,
+            "losses": 8,
+            "draws": 1,
+            "activeKills": 12,
+            "suicides": 1,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 6,
+            "rapidTurnReversals": 951,
+            "lowMotionTicks": 16,
+            "decisions": 12959,
+            "weightedMeanDecisionMs": 7.104433906937264,
+            "maxDecisionMs": 19.784,
+            "shots": 109,
+            "pickups": 8,
+            "pickupsByType": {
+              "mine": 2,
+              "laser": 1,
+              "shield": 2,
+              "scatter": 3
+            },
+            "deathsByWeapon": {
+              "bullet": 9
+            }
+          },
+          "opus-g1-prescience": {
+            "games": 20,
+            "wins": 8,
+            "losses": 11,
+            "draws": 1,
+            "activeKills": 8,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 29,
+            "rapidTurnReversals": 1568,
+            "lowMotionTicks": 150,
+            "decisions": 12959,
+            "weightedMeanDecisionMs": 3.5359665097615554,
+            "maxDecisionMs": 16.983,
+            "shots": 103,
+            "pickups": 2,
+            "pickupsByType": {
+              "mine": 1,
+              "scatter": 1
+            },
+            "deathsByWeapon": {
+              "bullet": 10,
+              "laser": 1,
+              "scatter": 1
+            }
+          }
+        },
+        "astra-g4-proteus vs deepseek-g5-mentor": {
+          "astra-g4-proteus": {
+            "games": 20,
+            "wins": 18,
+            "losses": 2,
+            "draws": 0,
+            "activeKills": 16,
+            "suicides": 1,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 22,
+            "rapidTurnReversals": 512,
+            "lowMotionTicks": 25,
+            "decisions": 5335,
+            "weightedMeanDecisionMs": 7.772959512652298,
+            "maxDecisionMs": 20.178,
+            "shots": 74,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 2
+            }
+          },
+          "deepseek-g5-mentor": {
+            "games": 20,
+            "wins": 2,
+            "losses": 18,
+            "draws": 0,
+            "activeKills": 1,
+            "suicides": 2,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 26,
+            "rapidTurnReversals": 364,
+            "lowMotionTicks": 235,
+            "decisions": 5335,
+            "weightedMeanDecisionMs": 10.59579418931584,
+            "maxDecisionMs": 20.165,
+            "shots": 81,
+            "pickups": 0,
+            "pickupsByType": {},
+            "deathsByWeapon": {
+              "bullet": 18
+            }
+          }
+        },
+        "astra-g3-imperator vs opus-g1-prescience": {
+          "astra-g3-imperator": {
+            "games": 20,
+            "wins": 2,
+            "losses": 18,
+            "draws": 0,
+            "activeKills": 1,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 29,
+            "rapidTurnReversals": 347,
+            "lowMotionTicks": 142,
+            "decisions": 5897,
+            "weightedMeanDecisionMs": 5.864107173138884,
+            "maxDecisionMs": 10.874,
+            "shots": 77,
+            "pickups": 1,
+            "pickupsByType": {
+              "laser": 1
+            },
+            "deathsByWeapon": {
+              "bullet": 18
+            }
+          },
+          "opus-g1-prescience": {
+            "games": 20,
+            "wins": 18,
+            "losses": 2,
+            "draws": 0,
+            "activeKills": 18,
+            "suicides": 1,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 26,
+            "rapidTurnReversals": 752,
+            "lowMotionTicks": 80,
+            "decisions": 5897,
+            "weightedMeanDecisionMs": 3.745329659148719,
+            "maxDecisionMs": 12.038,
+            "shots": 81,
+            "pickups": 1,
+            "pickupsByType": {
+              "mine": 1
+            },
+            "deathsByWeapon": {
+              "laser": 1,
+              "mine": 1
+            }
+          }
+        },
+        "astra-g3-imperator vs deepseek-g5-mentor": {
+          "astra-g3-imperator": {
+            "games": 20,
+            "wins": 8,
+            "losses": 12,
+            "draws": 0,
+            "activeKills": 8,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 22,
+            "rapidTurnReversals": 465,
+            "lowMotionTicks": 45,
+            "decisions": 9530,
+            "weightedMeanDecisionMs": 5.958959916054565,
+            "maxDecisionMs": 14.358,
+            "shots": 89,
+            "pickups": 3,
+            "pickupsByType": {
+              "laser": 1,
+              "mine": 1,
+              "shield": 1
+            },
+            "deathsByWeapon": {
+              "bullet": 11,
+              "laser": 1
+            }
+          },
+          "deepseek-g5-mentor": {
+            "games": 20,
+            "wins": 12,
+            "losses": 8,
+            "draws": 0,
+            "activeKills": 12,
+            "suicides": 0,
+            "matchTimeouts": 0,
+            "decisionTimeouts": 0,
+            "faults": 0,
+            "longestBlockedTicks": 22,
+            "rapidTurnReversals": 514,
+            "lowMotionTicks": 117,
+            "decisions": 9530,
+            "weightedMeanDecisionMs": 10.516667471143757,
+            "maxDecisionMs": 22.052,
+            "shots": 83,
+            "pickups": 3,
+            "pickupsByType": {
+              "shield": 2,
+              "laser": 1
+            },
+            "deathsByWeapon": {
+              "laser": 1,
+              "bullet": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "file": "research/proteus/final-ffa-no-powerups.json",
+      "protocol": {
+        "phase": "final untouched-seed evaluation; no tuning after freeze",
+        "codeCommit": "77f0b3cff3d7c2149e4b15b51a4322286e7061bc",
+        "started": "2026-11-06T23:32:45.696Z",
+        "finished": "2026-11-06T23:44:20.365Z",
+        "mode": "ffa",
+        "seedStart": 1300100,
+        "seedCount": 8,
+        "node": "v24.18.1",
+        "rules": {
+          "timeout": 60,
+          "powerups": false,
+          "wallBreak": false
+        },
+        "decisionMs": 50,
+        "hardInterruptionMs": 250,
+        "physicsHz": 60,
+        "observation": "unchanged public observe(); all actors see the same world tick",
+        "execution": "One Node process; each entrant compiled once and each match uses a new VM context; serial decisions under formal elapsed-time budget",
+        "order": "All four spawn rotations per seed",
+        "eventRetention": "All death, pickup and shield events; per-player shots retained; individual fire events and trace windows omitted",
+        "sources": [
+          {
+            "id": "astra-g4-proteus",
+            "filename": "bots/astra-g4-proteus.js"
+          },
+          {
+            "id": "astra-g3-imperator",
+            "filename": "bots/astra-g3-imperator.js"
+          },
+          {
+            "id": "opus-g1-prescience",
+            "filename": "bots/opus-g1-prescience.js"
+          },
+          {
+            "id": "deepseek-g5-mentor",
+            "filename": "bots/deepseek-g5-mentor.js"
+          }
+        ]
+      },
+      "summary": {
+        "astra-g4-proteus": {
+          "games": 32,
+          "wins": 15,
+          "losses": 17,
+          "draws": 0,
+          "activeKills": 44,
+          "suicides": 0,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 28,
+          "rapidTurnReversals": 2964,
+          "lowMotionTicks": 159,
+          "decisions": 29031,
+          "weightedMeanDecisionMs": 5.381960834969516,
+          "maxDecisionMs": 25.747,
+          "shots": 230,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 17
+          }
+        },
+        "astra-g3-imperator": {
+          "games": 32,
+          "wins": 2,
+          "losses": 30,
+          "draws": 0,
+          "activeKills": 11,
+          "suicides": 0,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 70,
+          "rapidTurnReversals": 1259,
+          "lowMotionTicks": 190,
+          "decisions": 18457,
+          "weightedMeanDecisionMs": 8.043672915425041,
+          "maxDecisionMs": 24.277,
+          "shots": 163,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 30
+          }
+        },
+        "opus-g1-prescience": {
+          "games": 32,
+          "wins": 15,
+          "losses": 17,
+          "draws": 0,
+          "activeKills": 31,
+          "suicides": 0,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 1,
+          "faults": 1,
+          "longestBlockedTicks": 30,
+          "rapidTurnReversals": 3490,
+          "lowMotionTicks": 468,
+          "decisions": 28078,
+          "weightedMeanDecisionMs": 3.7730245031697414,
+          "maxDecisionMs": 71.623,
+          "shots": 210,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 16
+          }
+        },
+        "deepseek-g5-mentor": {
+          "games": 32,
+          "wins": 0,
+          "losses": 32,
+          "draws": 0,
+          "activeKills": 8,
+          "suicides": 1,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 80,
+          "rapidTurnReversals": 1429,
+          "lowMotionTicks": 357,
+          "decisions": 20455,
+          "weightedMeanDecisionMs": 13.276424932779275,
+          "maxDecisionMs": 26.482,
+          "shots": 183,
+          "pickups": 0,
+          "pickupsByType": {},
+          "deathsByWeapon": {
+            "bullet": 32
+          }
+        }
+      }
+    },
+    {
+      "file": "research/proteus/final-ffa-powerups.json",
+      "protocol": {
+        "phase": "final untouched-seed evaluation; no tuning after freeze",
+        "codeCommit": "77f0b3cff3d7c2149e4b15b51a4322286e7061bc",
+        "started": "2026-11-06T23:44:20.366Z",
+        "finished": "2026-11-06T23:54:24.114Z",
+        "mode": "ffa",
+        "seedStart": 1400100,
+        "seedCount": 8,
+        "node": "v24.18.1",
+        "rules": {
+          "timeout": 60,
+          "powerups": true,
+          "wallBreak": false
+        },
+        "decisionMs": 50,
+        "hardInterruptionMs": 250,
+        "physicsHz": 60,
+        "observation": "unchanged public observe(); all actors see the same world tick",
+        "execution": "One Node process; each entrant compiled once and each match uses a new VM context; serial decisions under formal elapsed-time budget",
+        "order": "All four spawn rotations per seed",
+        "eventRetention": "All death, pickup and shield events; per-player shots retained; individual fire events and trace windows omitted",
+        "sources": [
+          {
+            "id": "astra-g4-proteus",
+            "filename": "bots/astra-g4-proteus.js"
+          },
+          {
+            "id": "astra-g3-imperator",
+            "filename": "bots/astra-g3-imperator.js"
+          },
+          {
+            "id": "opus-g1-prescience",
+            "filename": "bots/opus-g1-prescience.js"
+          },
+          {
+            "id": "deepseek-g5-mentor",
+            "filename": "bots/deepseek-g5-mentor.js"
+          }
+        ]
+      },
+      "summary": {
+        "astra-g4-proteus": {
+          "games": 32,
+          "wins": 13,
+          "losses": 19,
+          "draws": 0,
+          "activeKills": 43,
+          "suicides": 0,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 28,
+          "rapidTurnReversals": 2795,
+          "lowMotionTicks": 112,
+          "decisions": 28854,
+          "weightedMeanDecisionMs": 5.558112705344147,
+          "maxDecisionMs": 26.108,
+          "shots": 228,
+          "pickups": 5,
+          "pickupsByType": {
+            "shield": 5
+          },
+          "deathsByWeapon": {
+            "bullet": 18,
+            "scatter": 1
+          }
+        },
+        "astra-g3-imperator": {
+          "games": 32,
+          "wins": 0,
+          "losses": 32,
+          "draws": 0,
+          "activeKills": 5,
+          "suicides": 1,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 31,
+          "rapidTurnReversals": 1072,
+          "lowMotionTicks": 163,
+          "decisions": 17254,
+          "weightedMeanDecisionMs": 7.569228758548743,
+          "maxDecisionMs": 28.385,
+          "shots": 157,
+          "pickups": 2,
+          "pickupsByType": {
+            "laser": 1,
+            "scatter": 1
+          },
+          "deathsByWeapon": {
+            "laser": 1,
+            "bullet": 31
+          }
+        },
+        "opus-g1-prescience": {
+          "games": 32,
+          "wins": 15,
+          "losses": 17,
+          "draws": 0,
+          "activeKills": 36,
+          "suicides": 0,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 0,
+          "faults": 0,
+          "longestBlockedTicks": 29,
+          "rapidTurnReversals": 2632,
+          "lowMotionTicks": 238,
+          "decisions": 27277,
+          "weightedMeanDecisionMs": 3.6598748396084613,
+          "maxDecisionMs": 12.766,
+          "shots": 221,
+          "pickups": 7,
+          "pickupsByType": {
+            "laser": 1,
+            "shield": 5,
+            "scatter": 1
+          },
+          "deathsByWeapon": {
+            "bullet": 17
+          }
+        },
+        "deepseek-g5-mentor": {
+          "games": 32,
+          "wins": 4,
+          "losses": 28,
+          "draws": 0,
+          "activeKills": 7,
+          "suicides": 3,
+          "matchTimeouts": 0,
+          "decisionTimeouts": 1,
+          "faults": 1,
+          "longestBlockedTicks": 45,
+          "rapidTurnReversals": 895,
+          "lowMotionTicks": 110,
+          "decisions": 15219,
+          "weightedMeanDecisionMs": 13.24932853669755,
+          "maxDecisionMs": 51.039,
+          "shots": 160,
+          "pickups": 1,
+          "pickupsByType": {
+            "shield": 1
+          },
+          "deathsByWeapon": {
+            "bullet": 26,
+            "laser": 1
+          }
+        }
+      }
+    }
+  ]
+}
