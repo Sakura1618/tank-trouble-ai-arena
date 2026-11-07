@@ -75,7 +75,7 @@
   },
   {
     "id": "astra-g4-proteus",
-    "name": "Astra Gen4 · 无相",
+    "name": "Astra Gen4「无相」",
     "codename": "PROTEUS",
     "color": "#79e0d5",
     "description": "无形可测，无隙可乘。提炼先机的物理规划与退路搜索，联合评估多方威胁。",
@@ -107,7 +107,7 @@
   },
   {
     "id": "deepseek-g1-refract",
-    "name": "DeepSeek Gen1",
+    "name": "DeepSeek Gen1「折光者」",
     "codename": "REFRACT",
     "color": "#9db8ff",
     "description": "DeepSeek 第一代原版算法选手。",
@@ -117,7 +117,7 @@
   },
   {
     "id": "deepseek-g2-breaker",
-    "name": "DeepSeek Gen2",
+    "name": "DeepSeek Gen2「破障者」",
     "codename": "BREAKER",
     "color": "#ec9f66",
     "description": "DeepSeek 第二代原版算法选手。",
