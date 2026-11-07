@@ -1,5 +1,6 @@
 import { MatchReplay } from '../src/arena/replay.js';
 import { ArenaRenderer } from '../src/arena/render.js';
+import { exportRecordingMp4, supportedMp4Type } from './video-export.js';
 
 const format = (value, digits = 2) => Number.isFinite(value) ? value.toFixed(digits) : '未记录';
 const signed = value => Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(3)}` : '未记录';
@@ -90,6 +91,12 @@ export class ReplayPanel {
           <p class="replay-explanation">反复换向、低位移和墙面接触只说明同一时间发生的事实，不能单凭这些数据判定 AI 意图或碰撞错误。画面直接显示记录位置，不叠加显示平滑。</p>
         </aside>
       </div>
+      <div class="replay-transport">
+        <button type="button" data-ref="exportVideo">导出 MP4</button>
+        <button type="button" data-ref="cancelVideo" hidden>取消导出</button>
+        <progress data-ref="videoProgress" max="1" value="0" aria-label="视频导出进度" hidden></progress>
+      </div>
+      <p class="replay-note" data-ref="videoStatus" role="status"></p>
       <footer class="replay-bottom">
         <p>回放读取现场状态，不运行 AI 或重新计算物理；录像不含 AI 源码。</p>
         <button type="button" data-ref="download">下载录像</button>
@@ -113,6 +120,7 @@ export class ReplayPanel {
     this.dialog.addEventListener('close', () => {
       cancelAnimationFrame(this.animation);
       if (this.replay) this.replay.playing = false;
+      this.cancelVideoExport();
     });
     this.ui.play.onclick = () => {
       if (this.replay.position >= this.replay.totalTicks) this.replay.seek(0);
@@ -129,12 +137,15 @@ export class ReplayPanel {
     this.ui.speed.onchange = () => { if (this.replay) this.replay.speed = Number(this.ui.speed.value); };
     this.ui.tank.onchange = () => { this.lastDiagnosticIndex = -1; this.refresh(); };
     this.ui.download.onclick = () => downloadRecording(this.record);
+    this.ui.exportVideo.onclick = () => this.exportVideo();
+    this.ui.cancelVideo.onclick = () => this.videoExport.abort();
   }
 
   openFile() { this.fileInput.click(); }
 
   open(record) {
     cancelAnimationFrame(this.animation);
+    this.cancelVideoExport();
     this.record = record;
     this.replay = record.states?.length ? new MatchReplay(record) : null;
     this.lastDiagnosticIndex = -1;
@@ -150,6 +161,14 @@ export class ReplayPanel {
     this.ui.canvas.parentElement.hidden = !this.replay;
     for (const name of ['previous', 'play', 'next', 'seek', 'speed']) this.ui[name].disabled = !this.replay;
     this.ui.seek.max = this.replay?.totalTicks ?? 0;
+    this.mp4Type = supportedMp4Type();
+    this.ui.exportVideo.disabled = !this.replay || !this.mp4Type;
+    this.ui.cancelVideo.hidden = this.ui.videoProgress.hidden = true;
+    this.ui.videoStatus.textContent = !this.replay
+      ? '导出视频需要逐帧状态。请在下一局开始前勾选“详细录制”；已有摘要无法补出画面。'
+      : !this.mp4Type
+        ? '当前浏览器不支持 MP4 录制，请换用支持 MP4 录制的浏览器打开这份 JSON。'
+        : `仅导出竞技场画面：720p、30fps、无声 MP4，目标约 7.5MB/分钟（实际大小以浏览器编码为准）。按原速生成，耗时约 ${format(this.replay.totalTicks / record.physicsHz, 1)} 秒。${record.detailTruncated ? '仅导出已记录的部分。' : ''}导出期间可继续查看回放；切换标签页会暂停导出，关闭回放会取消。`;
     if (this.replay) this.replay.speed = Number(this.ui.speed.value);
     if (!this.dialog.open) this.dialog.showModal();
     this.lastTime = performance.now();
@@ -169,6 +188,54 @@ export class ReplayPanel {
     this.replay.playing = false;
     this.replay.seek(Math.floor(this.replay.position) + delta);
     this.refresh();
+  }
+
+  cancelVideoExport() {
+    this.videoExport?.abort();
+    this.videoExport = null;
+  }
+
+  async exportVideo() {
+    const controller = new AbortController();
+    this.videoExport = controller;
+    this.ui.exportVideo.disabled = true;
+    this.ui.cancelVideo.hidden = this.ui.videoProgress.hidden = false;
+    this.ui.videoProgress.value = 0;
+    this.ui.videoStatus.textContent = '正在准备 MP4…';
+    try {
+      const blob = await exportRecordingMp4(this.record, {
+        mimeType: this.mp4Type,
+        signal: controller.signal,
+        onProgress: (value, paused) => {
+          this.ui.videoProgress.value = value;
+          this.ui.videoStatus.textContent = paused
+            ? `导出已暂停（${Math.round(value * 100)}%），返回此标签页后继续。`
+            : `正在导出 MP4 · ${Math.round(value * 100)}% · 可继续查看回放，关闭回放将取消导出。`;
+        },
+      });
+      if (this.videoExport !== controller) return;
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `tank-match-${this.record.seed ?? this.record.mapSeed ?? this.record.id ?? 'recording'}.mp4`;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        this.ui.videoStatus.textContent = 'MP4 已生成并开始下载（仅竞技场画面，720p、30fps、无声）。';
+      } else {
+        this.ui.videoStatus.textContent = '已取消导出。';
+      }
+    } catch (error) {
+      if (this.videoExport === controller) this.ui.videoStatus.textContent = `MP4 导出失败：${error.message}`;
+    } finally {
+      if (this.videoExport === controller) {
+        this.videoExport = null;
+        this.ui.exportVideo.disabled = false;
+        this.ui.cancelVideo.hidden = this.ui.videoProgress.hidden = true;
+      }
+    }
   }
 
   refresh() {
