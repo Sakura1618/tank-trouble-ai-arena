@@ -1,6 +1,6 @@
 import { ChallengeGame } from './runtime.js';
 import { HumanControls } from './controls.js';
-import { ReplayPanel, downloadRecording } from './replay-panel.js';
+import { ReplayPanel, downloadRecording } from './replay-panel.js?v=arena-native-1';
 
 const $ = id => document.getElementById(id);
 const STORAGE = 'tank-trouble-web-challenge-v1';

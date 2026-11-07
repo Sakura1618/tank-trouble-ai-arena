@@ -1,6 +1,6 @@
 import { MatchReplay } from '../src/arena/replay.js';
 import { ArenaRenderer } from '../src/arena/render.js';
-import { exportRecordingMp4, supportedMp4Type } from './video-export.js';
+import { exportRecordingMp4, supportedMp4Type } from './video-export.js?v=arena-native-1';
 
 const format = (value, digits = 2) => Number.isFinite(value) ? value.toFixed(digits) : '未记录';
 const signed = value => Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(3)}` : '未记录';
