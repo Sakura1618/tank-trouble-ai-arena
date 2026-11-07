@@ -168,7 +168,7 @@ export class ReplayPanel {
       ? '导出视频需要逐帧状态。请在下一局开始前勾选“详细录制”；已有摘要无法补出画面。'
       : !this.mp4Type
         ? '当前浏览器不支持 MP4 录制，请换用支持 MP4 录制的浏览器打开这份 JSON。'
-        : `仅导出竞技场画面：720p、30fps、无声 MP4，目标约 7.5MB/分钟（实际大小以浏览器编码为准）。按原速生成，耗时约 ${format(this.replay.totalTicks / record.physicsHz, 1)} 秒。${record.detailTruncated ? '仅导出已记录的部分。' : ''}导出期间可继续查看回放；切换标签页会暂停导出，关闭回放会取消。`;
+        : `导出竞技场及选手姓名：按地图原生尺寸 ${record.initialState.map.width}×${record.initialState.map.height}、30fps、无声 MP4，不含场地外留白。目标约 7.5MB/分钟（实际大小以浏览器编码为准）。按原速生成，耗时约 ${format(this.replay.totalTicks / record.physicsHz, 1)} 秒。${record.detailTruncated ? '仅导出已记录的部分。' : ''}导出期间可继续查看回放；切换标签页会暂停导出，关闭回放会取消。`;
     if (this.replay) this.replay.speed = Number(this.ui.speed.value);
     if (!this.dialog.open) this.dialog.showModal();
     this.lastTime = performance.now();
@@ -223,7 +223,7 @@ export class ReplayPanel {
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-        this.ui.videoStatus.textContent = 'MP4 已生成并开始下载（仅竞技场画面，720p、30fps、无声）。';
+        this.ui.videoStatus.textContent = `MP4 已生成并开始下载（竞技场及选手姓名，${this.record.initialState.map.width}×${this.record.initialState.map.height}、30fps、无声）。`;
       } else {
         this.ui.videoStatus.textContent = '已取消导出。';
       }

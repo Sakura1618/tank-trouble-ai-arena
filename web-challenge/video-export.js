@@ -1,11 +1,11 @@
 import { MatchReplay } from '../src/arena/replay.js';
 import { ArenaRenderer } from '../src/arena/render.js';
 
-const WIDTH = 1280, HEIGHT = 720, FPS = 30;
+const FPS = 30;
 
 export function supportedMp4Type() {
   if (!globalThis.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return null;
-  return ['video/mp4;codecs=avc1.42E01F', 'video/mp4;codecs=avc1', 'video/mp4']
+  return ['video/mp4;codecs=avc1', 'video/mp4']
     .find(type => MediaRecorder.isTypeSupported(type)) ?? null;
 }
 
@@ -13,38 +13,43 @@ export function supportedMp4Type() {
 // MediaRecorder 使用真实时间，标签页隐藏时同时暂停编码与录像时钟。
 export function exportRecordingMp4(record, { mimeType, signal, onProgress }) {
   return new Promise((resolve, reject) => {
+    const { width, height } = record.initialState.map;
     const canvas = document.createElement('canvas');
-    canvas.setAttribute('aria-hidden', 'true');
-    canvas.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none';
-    document.body.append(canvas);
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    const renderCanvas = document.createElement('canvas');
+    renderCanvas.setAttribute('aria-hidden', 'true');
+    renderCanvas.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none';
+    document.body.append(renderCanvas);
     const replay = new MatchReplay(record);
-    const renderer = new ArenaRenderer(canvas, { maxDpr: 1 });
+    const renderer = new ArenaRenderer(renderCanvas, { maxDpr: 1 });
     const duration = replay.totalTicks / record.physicsHz;
     const chunks = [];
     let stream, recorder, animation, startedAt, pausedAt, lastFrame = -1, failure;
 
     const draw = seconds => {
       const dpr = Math.min(window.devicePixelRatio || 1, 1);
-      canvas.style.width = `${WIDTH / dpr}px`;
-      canvas.style.height = `${HEIGHT / dpr}px`;
+      renderCanvas.style.width = `${width / dpr + 40}px`;
+      renderCanvas.style.height = `${height / dpr + 56}px`;
       replay.seek(Math.min(replay.totalTicks, seconds * record.physicsHz));
-      replay.world.actors.forEach(actor => { actor.name = ''; });
       renderer.recordedEffects(replay.world, replay.recentEvents(2), replay.time);
       renderer.draw(replay.world, 0, true);
-      const ctx = renderer.ctx;
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.globalCompositeOperation = 'destination-over';
-      ctx.fillStyle = '#09111c';
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      ctx.restore();
+      // 与 ArenaRenderer 的视口计算一致，裁掉预览留白，保留原生场地大小和选手姓名。
+      const rect = renderCanvas.getBoundingClientRect();
+      const scale = Math.min((rect.width - 40) / width, (rect.height - 56) / height);
+      const pixelScale = renderer.ctx.getTransform().a;
+      const cropWidth = width * scale * pixelScale, cropHeight = height * scale * pixelScale;
+      const x = (rect.width * pixelScale - cropWidth) / 2, y = (rect.height * pixelScale - cropHeight) / 2;
+      ctx.drawImage(renderCanvas, x, y, cropWidth, cropHeight, 0, 0, width, height);
     };
     const cleanup = () => {
       cancelAnimationFrame(animation);
       signal.removeEventListener('abort', cancel);
       document.removeEventListener('visibilitychange', visibilityChanged);
       stream?.getTracks().forEach(track => track.stop());
-      canvas.remove();
+      renderCanvas.remove();
+      renderCanvas.width = renderCanvas.height = 0;
       canvas.width = canvas.height = 0;
     };
     const stop = () => {
