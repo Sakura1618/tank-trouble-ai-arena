@@ -828,7 +828,9 @@ function detectStuck(state) {
   }
   trailX[slot] = me.x;
   trailY[slot] = me.y;
-  mem.wantTicks = Math.abs(mem.lastMove) > 0.05 ? mem.wantTicks + 1 : 0;
+  // 贴墙时前进/原地转向会交替；短暂停车不能抹掉已发生的移动尝试。
+  mem.wantTicks = Math.abs(mem.lastMove) > 0.05
+    ? Math.min(window, mem.wantTicks + 1) : Math.max(0, mem.wantTicks - 1);
   if (mem.wantTicks < window || moved >= TUNE.stuckDistance) return;
   mem.wantTicks = 0;
   mem.pathWaypoint = null;
